@@ -1,6 +1,8 @@
 /dyn
 /images
-/publications
+/publications/*.pdf
+/publications/*.zip
+/publications/*.ps
 /sound
 /students
 /talks
