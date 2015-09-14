@@ -1,10 +1,45 @@
 %% Drafts
 
+@misc{fstar-popl2016-submission,
+  author = {Nikhil Swamy and
+            C\u{a}t\u{a}lin Hri\c{t}cu and
+            Chantal Keller and
+            Aseem Rastogi and
+            Antoine Delignat-Lavaud and
+            Simon Forest and
+            Karthikeyan Bhargavan and
+            Cédric Fournet and
+            Pierre-Yves Strub and
+            Markulf Kohlweiss and 
+            Jean-Karim Zinzindohoue},
+  title = {Dependent Types and Multi-Monadic Effects in {F*}},
+  url = {https://www.fstar-lang.org/papers/mumon/},
+  year = {2015},
+  month = jul,
+  howpublished = {Draft, Submitted to POPL},
+  chcontrib = {secondauthor},
+}
+
+@misc{luck-popl2016-submission,
+  author = {Leonidas Lampropoulos and
+            Benjamin C. Pierce and
+            C\u{a}t\u{a}lin Hri\c{t}cu and
+            John Hughes and
+            Zoe Paraskevopoulou and
+            Li-yao Xia},
+  title = {Making Our Own Luck: A Language For Random Generators},
+  url = {http://prosecco.gforge.inria.fr/personal/hritcu/publications/luck.pdf},
+  year = {2015},
+  month = jul,
+  howpublished = {Draft, Submitted to POPL},
+  chcontrib = {minor},
+}
+
 @misc{jfpsubmission2014,
   author = {C\u{a}t\u{a}lin Hri\c{t}cu and
             Leonidas Lampropoulos and
             Antal Spector-Zabusky and
-            Arthur Azevedo de Amorim and
+            Arthur {Azevedo de Amorim} and
             Maxime D\'{e}n\`{e}s and
             John Hughes and
             Benjamin C. Pierce and
@@ -14,6 +49,22 @@
   howpublished = {arXiv:1409.0393; Submitted to Special Issue of Journal of Functional Programming for ICFP 2013},
   month = sep,
   year = {2014},
+  chcontrib = {firstauthor}
+}
+
+% Rejected
+@misc{pump_ccs2014,
+  author = {C\u{a}t\u{a}lin Hri\c{t}cu and
+          Udit Dhawan and
+          Nikos Vasilakis and
+          Silviu Chiricescu and
+          Jonathan M. Smith and
+          Benjamin C. Pierce and
+          Andr\'{e} DeHon},
+  title = {Programming the {PUMP}: Hardware-Assisted Micro-Policies for Security},
+  howpublished = {Submitted},
+  year = {2014},
+  month = may,
 }
 
 %% Journal Papers
@@ -72,10 +123,17 @@
 %% Books
 
 @book{Pierce2012sf,
-  author = {Benjamin C. Pierce and Chris Casinghino and Marco Gaboardi and Michael Greenberg and C\u{a}t\u{a}lin Hri\c{t}cu and Vilhelm Sj\"oberg and Brent Yorgey},
+  author = {Benjamin C. Pierce and
+            Chris Casinghino and
+            Marco Gaboardi and
+            Michael Greenberg and
+            C\u{a}t\u{a}lin Hri\c{t}cu and
+            Vilhelm Sj\"oberg and
+            Brent Yorgey},
   title = {Software Foundations},
-  year = {2013},
-  publisher = {Electronic textbook},
+  month = jul,
+  year = {2014},
+  publisher = {Electronic textbook, Version 3.1},
   url = {http://www.cis.upenn.edu/~bcpierce/sf/},
   key = {Books},
   chcontrib = {minor},
@@ -84,7 +142,20 @@
 
 %% Conference Papers
 
-@inproceedings{oakland2015submission,
+@misc{itp2015,
+  author = {Zoe Paraskevopoulou and
+            C\u{a}t\u{a}lin Hri\c{t}cu and
+            Maxime D\'{e}n\`{e}s and
+            Leonidas Lampropoulos and
+            Benjamin C. Pierce},
+  title = {Foundational Property-Based Testing},
+  year = {2015},
+  month = mar,
+  url = {http://prosecco.gforge.inria.fr/personal/hritcu/publications/foundational-pbt.pdf},
+  howpublished = {Accepted at Interactive Theorem Proving (ITP 2015), to appear},
+}
+
+@inproceedings{AmorimDGHPST15,
   author = {  Arthur {Azevedo de Amorim} and
               Maxime D\'en\`es and
               Nick Giannarakis and
@@ -92,15 +163,18 @@
               Benjamin C. Pierce and
               Antal Spector-Zabusky and
               Andrew Tolmach},
-  title = {Micro-Policies: A Framework for Verified, Tag-Based Security Monitors},
-  booktitle = {To appear in Oakland S\&P},
+  title = {Micro-Policies: Formally Verified, Tag-Based Security Monitors},
+  booktitle = {36th IEEE Symposium on Security and Privacy (Oakland S\&P)},
   year = {2015},
   month = may,
-  url = {http://prosecco.gforge.inria.fr/personal/hritcu/publications/micropolicies-draft.pdf},
+  url = {http://prosecco.gforge.inria.fr/personal/hritcu/publications/micro-policies.pdf},
+  publisher = {IEEE},
   acceptance = {55/420=0.13},
+  note = {To appear},
+  chcontrib = {other},
 }
 
-@misc{DhawnHRVCSKPD15,
+@inproceedings{DhawnHRVCSKPD15,
   author = {Udit Dhawan and
           C\u{a}t\u{a}lin Hri\c{t}cu and
           Rafi Rubin and
@@ -111,10 +185,14 @@
           Benjamin C. Pierce and
           Andr\'{e} DeHon},
   title = {Architectural Support for Software-Defined Metadata Processing},
-  howpublished = {To appear in ASPLOS},
+  booktitle = {20th International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS)},
   year = {2015},
-  month = march,
+  month = mar,
   url = {http://ic.ese.upenn.edu/abstracts/sdmp_asplos2015.html},
+  pages = {487-502},
+  publisher = {ACM},
+  acceptance = {48/287=0.17},
+  chcontrib = {minor},
 }
 
 @inproceedings{AmorimCDDHPPPT14,
@@ -150,7 +228,7 @@
     Benjamin C. Pierce and
     Antal Spector-Zabusky and
     Dimitrios Vytiniotis and
-    Arthur Azevedo de Amorim and
+    Arthur {Azevedo de Amorim} and
     Leonidas Lampropoulos},
   title = {Testing Noninterference, Quickly},
   booktitle = {18th ACM SIGPLAN International Conference on
@@ -158,7 +236,7 @@
   year = {2013},
   publisher = {ACM},
   pages     = {455-468},
-  month = sept,
+  month = sep,
   url = {http://prosecco.gforge.inria.fr/personal/hritcu/publications/testing-noninterference-icfp2013.pdf},
   acceptance = {40/133=0.30},
   key = {Conference},
@@ -173,7 +251,7 @@ http://www.crash-safe.org/node/24
             Benjamin C. Pierce and
             Greg Morrisett},
   title = {All Your {IFCException} Are Belong To Us},
-  booktitle = {34th IEEE Symposium on Security and Privacy (Oakland 2013)},
+  booktitle = {34th IEEE Symposium on Security and Privacy (Oakland S\&P)},
   pages = {3-17},
   publisher = {IEEE Computer Society Press},
   url = {http://prosecco.gforge.inria.fr/personal/hritcu/publications/all-your-ifcexceptions-draft-full.pdf},
@@ -525,4 +603,28 @@ Advisor: Jan Schwinghammer, Programming  Systems  Lab,
   year = 	 {2005},
   month = 	 sep,
   key = 	 {Other}
+}
+
+%% Special (journal+conference)
+
+@inproceedings{TestingNIJoint,
+  author = {C\u{a}t\u{a}lin Hri\c{t}cu and
+            Leonidas Lampropoulos and
+            Antal Spector-Zabusky and
+            Arthur {Azevedo de Amorim} and
+            Maxime D\'{e}n\`{e}s and
+            John Hughes and
+            Benjamin C. Pierce and
+            Dimitrios Vytiniotis},
+  title = {Testing Noninterference, Quickly},
+  booktitle = {18th ACM SIGPLAN International Conference on
+                  Functional Programming (ICFP)},
+  year = {2013},
+  publisher = {ACM},
+  pages     = {455-468},
+  month = sep,
+  url = {http://prosecco.gforge.inria.fr/personal/hritcu/publications/testing-noninterference-icfp2013.pdf},
+  acceptance = {40/133=0.30},
+  note = {\href{http://arxiv.org/abs/1409.0393}{Extended version}
+           submitted to special issue of JFP, September 2014.},
 }
