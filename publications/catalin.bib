@@ -31,23 +31,6 @@
   chcontrib = {minor},
 }
 
-@misc{jfpsubmission2014,
-  author = {C\u{a}t\u{a}lin Hri\c{t}cu and
-            Leonidas Lampropoulos and
-            Antal Spector-Zabusky and
-            Arthur {Azevedo de Amorim} and
-            Maxime D\'{e}n\`{e}s and
-            John Hughes and
-            Benjamin C. Pierce and
-            Dimitrios Vytiniotis},
-  title = {Testing Noninterference, Quickly},
-  url = {http://arxiv.org/abs/1409.0393},
-  howpublished = {arXiv:1409.0393; Submitted to Special Issue of Journal of Functional Programming for ICFP 2013},
-  month = sep,
-  year = {2014},
-  chcontrib = {equalthree}
-}
-
 @misc{jcssubmission2015,
   title = {A Verified Information-Flow Architecture},
   author = {
@@ -61,12 +44,37 @@
     Randy Pollack and
     Andrew Tolmach
   },
-  howpublished = {Submitted to special issue of the Journal of
-                  Computer Security on Verified Information Flow Security},
+  howpublished = {arXiv:1509.06503; Submitted to special issue of the Journal of
+                  Computer Security (JCS) on Verified Information Flow Security},
   year = {2015},
   month = sep,
   url = {http://arxiv.org/abs/1509.06503},
   chcontrib = {equalall},
+}
+
+% Tentatively joining this list with Arthur's permission
+@misc{arthur-alpha-draft,
+  author = {Arthur {Azevedo de Amorim} and
+            Benjamin C. Pierce and
+            C\u{a}t\u{a}lin Hri\c{t}cu},
+  title = {Alpha is for Address! {The} Essence of Memory Safety},
+  howpublished = {Draft},
+  month = jul,
+  year = {2015},
+  chcontrib = {minor}
+}
+
+@misc{proportional_micro2015,
+  title = {Pay-for-what-you-need: Energy Proportional Adaptive
+           Metadata Architecture for Safety and Security},
+  author = {Nick Roessler and
+            Udit Dhawn and
+            C\u{a}t\u{a}lin Hri\c{t}cu and
+            Andr\'{e} DeHon},
+  howpublished = {Draft},
+  month = nov,
+  year = {2015},
+  chcontrib = {minor}
 }
 
 % Rejected
@@ -85,6 +93,23 @@
 }
 
 %% Journal Papers
+
+@misc{jfpsubmission2014,
+  author = {C\u{a}t\u{a}lin Hri\c{t}cu and
+            Leonidas Lampropoulos and
+            Antal Spector-Zabusky and
+            Arthur {Azevedo de Amorim} and
+            Maxime D\'{e}n\`{e}s and
+            John Hughes and
+            Benjamin C. Pierce and
+            Dimitrios Vytiniotis},
+  title = {Testing Noninterference, Quickly},
+  url = {http://arxiv.org/abs/1409.0393},
+  howpublished = {arXiv:1409.0393; Accepted in Special Issue of Journal of Functional Programming (JFP) for ICFP 2013. To appear},
+  month = jul,
+  year = {2015},
+  chcontrib = {equalthree}
+}
 
 @article{Backes:Hritcu:Maffei:14jcs,
   author = {Michael Backes and
@@ -142,7 +167,7 @@
 
 %% Books
 
-@book{Pierce2012sf,
+@book{SF,
   author = {Benjamin C. Pierce and
             Chris Casinghino and
             Marco Gaboardi and
@@ -175,10 +200,16 @@
             Jean-Karim Zinzindohoue and
             Santiago Zanella-B\'eguelin},
   title = {Dependent Types and Multi-Monadic Effects in {F*}},
+  booktitle = {43nd ACM SIGPLAN-SIGACT
+    Symposium on Principles of Programming Languages (POPL)},
+  shortbooktitle = {POPL},
+  pages = {256-270},
+  publisher = {ACM},
+  isbn = {978-1-4503-3549-2},
+  month = jan,
+  year = {2016},
+  ee = {http://dx.doi.org/10.1145/2837614.2837655},
   url = {https://www.fstar-lang.org/papers/mumon/},
-  year = {2015},
-  month = jul,
-  note = {To appear in POPL 2016},
   acceptance = {59/253=0.23},
   chcontrib = {secondauthor},
 }
@@ -215,7 +246,7 @@
               Benjamin C. Pierce and
               Antal {Spector-Zabusky} and
               Andrew Tolmach},
-  title = {Micro-Policies: Formally Verified, Tag-Based Security Monitors},
+  title = {{Micro-Policies}: Formally Verified, Tag-Based Security Monitors},
   booktitle = {36th IEEE Symposium on Security and Privacy (Oakland S\&P)},
   shortbooktitle = {Oakland S\&P},
   year = {2015},
