@@ -1,19 +1,5 @@
 %% Drafts
 
-@misc{beyond-full-abstraction,
-  author = {Yannis Juglaret and
-            C\u{a}t\u{a}lin Hri\c{t}cu and
-            Arthur {Azevedo de Amorim} and
-            Benjamin C. Pierce},
-  title = {Beyond Good and Evil: Formalizing the Security
-                  Guarantees of Low-Level Compartmentalization},
-  howpublished = {Draft, arXiv:1602.04503},
-  year = {2016},
-  month = feb,
-  url = {http://arxiv.org/abs/1602.04503},
-  chcontrib = {secondauthor},
-}
-
 @misc{yannis-report,
   author = {Yannis Juglaret and
             C\u{a}t\u{a}lin Hri\c{t}cu and
@@ -41,11 +27,10 @@
   url = {http://www.cis.upenn.edu/~llamp/pdf/Luck.pdf},
   year = {2015},
   month = jul,
-  howpublished = {Draft},
+  howpublished = {Unpublished Draft},
   chcontrib = {minor},
 }
 
-% Tentatively joining this list with Arthur's permission
 @misc{arthur-alpha-draft,
   author = {Arthur {Azevedo de Amorim} and
             Benjamin C. Pierce and
@@ -54,6 +39,7 @@
   howpublished = {Draft},
   month = jul,
   year = {2015},
+  url = {https://www.cis.upenn.edu/~aarthur/alpha-draft.pdf},
   chcontrib = {minor}
 }
 
@@ -109,7 +95,7 @@
   chcontrib = {equalall},
 }
 
-@misc{testing_ni_jfp,
+@article{testing_ni_jfp,
   author = {C\u{a}t\u{a}lin Hri\c{t}cu and
             Leonidas Lampropoulos and
             Antal Spector-Zabusky and
@@ -119,10 +105,17 @@
             Benjamin C. Pierce and
             Dimitrios Vytiniotis},
   title = {Testing Noninterference, Quickly},
+  journal = {Journal of Functional Programming (JFP); Special issue for ICFP 2013},
+  shortjournal = {JFP},
+  volume = {26},
+  year = {2016},
+  month = apr,
+  issn = {1469-7653},
+  pages = {e4 (62 pages)},
+  note = {Technical Report available as arXiv:1409.0393},
+  doi = {http://dx.doi.org/10.1017/S0956796816000058},
+  ee = {http://journals.cambridge.org/article_S0956796816000058},
   url = {http://arxiv.org/abs/1409.0393},
-  howpublished = {arXiv:1409.0393; Accepted in Special Issue of Journal of Functional Programming (JFP) for ICFP 2013. To appear},
-  month = jul,
-  year = {2015},
   chcontrib = {equalthree}
 }
 
@@ -195,12 +188,31 @@
   month = jan,
   year = {2016},
   publisher = {Electronic textbook, Version 4.0 beta},
-  url = {http://www.cis.upenn.edu/~bcpierce/sf/},
+  url = {https://www.cis.upenn.edu/~bcpierce/sf/sf-4.0/index.html},
   key = {Books},
   chcontrib = {minor},
 }
 
 %% Conference Papers
+
+@inproceedings{beyond-good-and-evil,
+  author = {Yannis Juglaret and
+            C\u{a}t\u{a}lin Hri\c{t}cu and
+            Arthur {Azevedo de Amorim} and
+            Benjamin C. Pierce},
+  title = {Beyond Good and Evil: Formalizing the Security Guarantees
+                  of Compartmentalizing Compilation},
+  booktitle = {29th IEEE Symposium on Computer Security Foundations (CSF)},
+  shortbooktitle = {CSF},
+  year = {2016},
+  month = jul,
+  publisher = {IEEE Computer Society Press},
+  url = {http://arxiv.org/abs/1602.04503},
+  acceptance = {31/87=0.36},
+  key = {Conference Papers},
+  chcontrib = {secondauthor},
+  note = {To appear, arXiv:1602.04503},
+}
 
 @inproceedings{fstar-popl2016,
   author = {Nikhil Swamy and
@@ -739,5 +751,5 @@ Advisor: Jan Schwinghammer, Programming  Systems  Lab,
   url = {http://prosecco.gforge.inria.fr/personal/hritcu/publications/testing-noninterference-icfp2013.pdf},
   acceptance = {40/133=0.30},
   note = {\href{http://arxiv.org/abs/1409.0393}{Extended version}
-           submitted to special issue of JFP, September 2014.},
+           accepted in special issue of JFP, February 2016.},
 }
