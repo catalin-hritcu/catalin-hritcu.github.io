@@ -12,10 +12,51 @@ h1, h2, h3, h4, h5, h6 {
     text-align: left;
 }
 
+a:link {
+    text-decoration: none;
+}
+
+a:visited {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+a:active {
+    text-decoration: underline;
+}
+
 #photo {
  	clear:none;
 	float: right;
 	margin: 20px;
 }
 
-p.pubtitle{  margin-bottom: 0.5ex;}p.pubauthor{  font-size: smaller;  margin-top: 0.5ex;  margin-bottom: 0ex;}p.pubnote{  font-size: smaller;  color: #333333;  margin-top: 0.5ex;  margin-bottom: 0ex;}p.pubref{  font-size: smaller;  margin-top: 0.5ex;  margin-bottom: 0ex;}
+p.pubtitle
+{
+  margin-bottom: 0.5ex;
+}
+
+p.pubauthor
+{
+  font-size: smaller;
+  margin-top: 0.5ex;
+  margin-bottom: 0ex;
+}
+
+p.pubnote
+{
+  font-size: smaller;
+  color: #333333;
+  margin-top: 0.5ex;
+  margin-bottom: 0ex;
+}
+
+p.pubref
+{
+  font-size: smaller;
+  margin-top: 0.5ex;
+  margin-bottom: 0ex;
+}
