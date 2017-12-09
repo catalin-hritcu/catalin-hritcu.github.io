@@ -22,7 +22,7 @@
             Th\'eo Laurent and
             Arthur Azevedo de Amorim and
             Benjamin C. Pierce and
-            Andrew Tolmach and},
+            Andrew Tolmach},
   title = {Formally Secure Compilation of Unsafe Low-Level Components
            (Extended Abstract)},
   howpublished = {arXiv:1710.07308},
@@ -43,26 +43,6 @@
   chcontrib = {minor},
 }
 
-@misc{relational,
-  author = {Niklas Grimm and
-            Kenji Maillard and
-            C\'edric Fournet and
-            C\u{a}t\u{a}lin Hri\c{t}cu and
-            Matteo Maffei and
-            Jonathan Protzenko and
-            Tahina Ramananandro and
-            Aseem Rastogi and
-            Nikhil Swamy and
-            Santiago {Zanella-B\'eguelin}},
-  title = {A Monadic Framework for Relational Verification: Applied to
-           Information Security, Program Equivalence, and Optimizations},
-  howpublished = {arXiv:1703.00055},
-  url = {https://arxiv.org/abs/1703.00055},
-  year = {2017},
-  month = oct,
-  chcontrib = {misc},
-}
-
 @misc{yannis-report,
   author = {Yannis Juglaret and
             C\u{a}t\u{a}lin Hri\c{t}cu and
@@ -81,7 +61,29 @@
 
 %% Conference Papers
 
-@misc{preorders,
+@inproceedings{relational,
+  author = {Niklas Grimm and
+            Kenji Maillard and
+            C\'edric Fournet and
+            C\u{a}t\u{a}lin Hri\c{t}cu and
+            Matteo Maffei and
+            Jonathan Protzenko and
+            Tahina Ramananandro and
+            Aseem Rastogi and
+            Nikhil Swamy and
+            Santiago {Zanella-B\'eguelin}},
+  title = {A Monadic Framework for Relational Verification: Applied to
+           Information Security, Program Equivalence, and Optimizations},
+  booktitle = {The 7th ACM SIGPLAN International Conference on
+               Certified Programs and Proofs},
+  shortbooktitle = {CPP},
+  url = {https://arxiv.org/abs/1703.00055},
+  year = {2018},
+  month = jan,
+  chcontrib = {misc},
+}
+
+@article{preorders,
   author = {Danel Ahman and
             C\'edric Fournet and
             C\u{a}t\u{a}lin Hri\c{t}cu and
@@ -89,10 +91,12 @@
             Aseem Rastogi and
             Nikhil Swamy},
   title = {Recalling a Witness: Foundations and Applications of Monotonic State},
-  howpublished = {Conditionally Accepted at POPL'18},
+  journal   = {{PACMPL}},
+  volume    = {2},
+  number    = {{POPL}},
+  year      = {2018},
+  month = jan,
   url = {https://arxiv.org/abs/1707.02466},
-  year = {2017},
-  month = jul,
   chcontrib = {misc},
   acceptance = {66/271=24.4},
 }
@@ -115,6 +119,7 @@
   number    = {{ICFP}},
   pages     = {17:1--17:29},
   year      = {2017},
+  month     = sep,
   ee        = {http://doi.acm.org/10.1145/3110261},
   doi       = {10.1145/3110261},
   url = {http://arxiv.org/abs/1703.00053},
