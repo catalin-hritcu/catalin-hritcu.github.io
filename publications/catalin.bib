@@ -1,18 +1,66 @@
 %% Drafts
 
-@misc{lio4free,
-  author = {Maximilian Algehed and
-            Jean-Philippe Bernardy and
+@misc{secureptrs,
+  author = {Akram El-Korashy and
+            Roberto Blanco and
+            Jérémy Thibault and
+            Adrien Durier and
+            Deepak Garg and
             C\u{a}t\u{a}lin Hri\c{t}cu},
-  title = {Dynamic {IFC} Theorems for Free!},
-  howpublished = {arXiv:2005.04722},
-  month = may,
-  year = 2020,
-  url = {https://arxiv.org/abs/2005.04722},
+  title = {SecurePtrs: Proving Secure Compilation with Data-Flow Back-Translation and Turn-Taking Simulation},
+  howpublished = {arXiv:2110.01439},
+  url = {https://arxiv.org/abs/2110.01439},
+  month = oct,
+  year = 2021,
   chcontrib = {minor},
 }
 
 %% Conference Papers
+
+@inproceedings{difc4free,
+  author    = {Maximilian Algehed and
+               Jean{-}Philippe Bernardy and
+               C\u{a}t\u{a}lin Hri\c{t}cu},
+  title     = {Dynamic {IFC} Theorems for Free!},
+  booktitle = {34th {IEEE} Computer Security Foundations Symposium, ({CSF})},
+  pages     = {1--14},
+  publisher = {{IEEE}},
+  year      = {2021},
+  url       = {https://arxiv.org/abs/2005.04722},
+  ee        = {https://doi.org/10.1109/CSF51468.2021.00005},
+  doi       = {10.1109/CSF51468.2021.00005},
+  timestamp = {Fri, 13 Aug 2021 09:35:20 +0200},
+  biburl    = {https://dblp.org/rec/conf/csfw/AlgehedBH21.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org},
+  chcontrib = {minor},
+  acceptance = {43/172=0.25},
+}
+
+@inproceedings{ssprove,
+  author    = {Carmine Abate and
+               Philipp G. Haselwarter and
+               Exequiel Rivas and
+               Antoine Van Muylder and
+               Th{\'{e}}o Winterhalter and
+               C\u{a}t\u{a}lin Hri\c{t}cu and
+               Kenji Maillard and
+               Bas Spitters},
+  title     = {{SSProve}: {A} Foundational Framework for Modular Cryptographic Proofs
+               in {Coq}},
+  booktitle = {34th {IEEE} Computer Security Foundations Symposium (CSF)},
+  shortbooktitle = {CSF},
+  pages     = {608--622},
+  publisher = {{IEEE}},
+  year      = {2021},
+  url       = {https://eprint.iacr.org/2021/397},
+  ee        = {https://doi.org/10.1109/CSF51468.2021.00048},
+  doi       = {10.1109/CSF51468.2021.00048},
+  timestamp = {Fri, 13 Aug 2021 09:35:20 +0200},
+  biburl    = {https://dblp.org/rec/conf/csfw/AbateHRMWHMS21.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org},
+  chcontrib = {minor},
+  acceptance = {43/172=0.25},
+}
 
 @inproceedings{difftraces,
   author = {Carmine Abate and
@@ -70,7 +118,7 @@
   number    = {{ICFP}},
   pages     = {104:1--104:29},
   year      = {2019},
-  url       = {https://doi.org/10.1145/3341708},
+  ee        = {https://doi.org/10.1145/3341708},
   doi       = {10.1145/3341708},
   url       = {https://arxiv.org/abs/1903.01237},
   chcontrib = {minor},
@@ -119,7 +167,7 @@
   pages     = {30--59},
   publisher = {Springer},
   year      = {2019},
-  month     = april,
+  month     = apr,
   url       = {https://fstar-lang.org/papers/metafstar},
   ee        = {https://doi.org/10.1007/978-3-030-17184-1\_2},
   doi       = {10.1007/978-3-030-17184-1\_2},
@@ -832,9 +880,25 @@ http://ieee-security.org/TC/SP2013/papers/4977a003.pdf
 
 %% Editor
 
+@proceedings{cpp-2021,
+  editor    = {C\u{a}t\u{a}lin Hri\c{t}cu and
+               Andrei Popescu},
+  title     = {Proceedings of the 10th {ACM} {SIGPLAN} International Conference on Certified
+               Programs and Proofs, Virtual Event, Denmark, January 17-19, 2021},
+  publisher = {{ACM}},
+  year      = {2021},
+  url       = {https://doi.org/10.1145/3437992},
+  doi       = {10.1145/3437992},
+  isbn      = {978-1-4503-8299-1},
+  timestamp = {Fri, 12 Feb 2021 14:28:33 +0100},
+  biburl    = {https://dblp.org/rec/conf/cpp/2021.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org},
+  chcontrib = {first},
+}
+
 @proceedings{cpp-2020,
   editor    = {Jasmin Blanchette and
-               Catalin Hritcu},
+               C\u{a}t\u{a}lin Hri\c{t}cu},
   title     = {Proceedings of the 9th {ACM} {SIGPLAN} International Conference on
                Certified Programs and Proofs, {CPP} 2020, New Orleans, LA, USA, January
                20-21, 2020},
@@ -845,7 +909,8 @@ http://ieee-security.org/TC/SP2013/papers/4977a003.pdf
   isbn      = {978-1-4503-7097-4},
   timestamp = {Thu, 23 Jan 2020 16:09:06 +0100},
   biburl    = {https://dblp.org/rec/conf/cpp/2020.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+  bibsource = {dblp computer science bibliography, https://dblp.org},
+  chcontrib = {first},
 }
 
 @Article{dagstuhl-sc-2018,
@@ -857,7 +922,7 @@ http://ieee-security.org/TC/SP2013/papers/4977a003.pdf
   year =	{2018},
   volume =	{8},
   number =	{5},
-  editor =	{Amal Ahmed and Deepak Garg and Catalin Hritcu and Frank Piessens},
+  editor =	{Amal Ahmed and Deepak Garg and C\u{a}t\u{a}lin Hri\c{t}cu and Frank Piessens},
   publisher =	{Schloss Dagstuhl--Leibniz-Zentrum fuer Informatik},
   address =	{Dagstuhl, Germany},
   URL =		{http://drops.dagstuhl.de/opus/volltexte/2018/9891},
