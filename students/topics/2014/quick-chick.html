@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.06">
+<style type="text/css">
+.li-itemize{margin:1ex 0ex;}
+.li-enumerate{margin:1ex 0ex;}
+.dd-description{margin:0ex 0ex 1ex 4ex;}
+.dt-description{margin:0ex;}
+.toc{list-style:none;}
+.footnotetext{margin:0ex; padding:0ex;}
+div.footnotetext P{margin:0px; text-indent:1em;}
+.thefootnotes{text-align:left;margin:0ex;}
+.dt-thefootnotes{margin:0em;}
+.dd-thefootnotes{margin:0em 0em 0em 2em;}
+.footnoterule{margin:1em auto 1em 0px;width:50%;}
+.caption{padding-left:2ex; padding-right:2ex; margin-left:auto; margin-right:auto}
+.title{margin:2ex auto;text-align:center}
+.titlemain{margin:1ex 2ex 2ex 1ex;}
+.titlerest{margin:0ex 2ex;}
+.center{text-align:center;margin-left:auto;margin-right:auto;}
+.flushleft{text-align:left;margin-left:0ex;margin-right:auto;}
+.flushright{text-align:right;margin-left:auto;margin-right:0ex;}
+div table{margin-left:inherit;margin-right:inherit;margin-bottom:2px;margin-top:2px}
+td table{margin:auto;}
+table{border-collapse:collapse;}
+td{padding:0;}
+.cellpadding0 tr td{padding:0;}
+.cellpadding1 tr td{padding:1px;}
+pre{text-align:left;margin-left:0ex;margin-right:auto;}
+blockquote{margin-left:4ex;margin-right:4ex;text-align:left;}
+td p{margin:0px;}
+.boxed{border:1px solid black}
+.textboxed{border:1px solid black}
+.vbar{border:none;width:2px;background-color:black;}
+.hbar{border:none;height:2px;width:100%;background-color:black;}
+.hfill{border:none;height:1px;width:200%;background-color:black;}
+.vdisplay{border-collapse:separate;border-spacing:2px;width:auto; empty-cells:show; border:2px solid red;}
+.vdcell{white-space:nowrap;padding:0px; border:2px solid green;}
+.display{border-collapse:separate;border-spacing:2px;width:auto; border:none;}
+.dcell{white-space:nowrap;padding:0px; border:none;}
+.dcenter{margin:0ex auto;}
+.vdcenter{border:solid #FF8000 2px; margin:0ex auto;}
+.minipage{text-align:left; margin-left:0em; margin-right:auto;}
+.marginpar{border:solid thin black; width:20%; text-align:left;}
+.marginparleft{float:left; margin-left:0ex; margin-right:1ex;}
+.marginparright{float:right; margin-left:1ex; margin-right:0ex;}
+.theorem{text-align:left;margin:1ex auto 1ex 0ex;}
+.part{margin:2ex auto;text-align:center}
+</style>
+<title>QuickChick: Property-Based Testing for Coq
+</title>
+</head>
+<body >
+<!--HEVEA command line is: /usr/bin/hevea -fix quick-chick.tex -->
+<!--CUT STYLE article--><!--CUT DEF section 1 --><table class="title"><tr><td style="padding:1ex"><h1 class="titlemain">QuickChick: Property-Based Testing for Coq</h1></td></tr>
+</table><p><span style="font-weight:bold">Advisor:</span> <a href="http://prosecco.gforge.inria.fr/personal/hritcu/">C&#X103;t&#X103;lin Hri&#X163;cu</a> &#X27E8;<a href="mailto:catalin.hritcu@gmail.com">catalin.hritcu@gmail.com</a>&#X27E9;
+<br>
+<br>
+<span style="font-weight:bold">INRIA Team:</span> <a href="http://prosecco.gforge.inria.fr/">Prosecco</a>
+<br>
+<br>
+<span style="font-weight:bold">Location:</span> <a href="https://maps.google.com/maps?q=23+Avenue+d'Italie,+75013+Paris,+France">23 Avenue d&#X2019;Italie, Paris, France</a>
+<br>
+<br>
+<span style="font-weight:bold">Language:</span> English (no French)
+<br>
+<br>
+<span style="font-weight:bold">Existing skills or strong desire to learn:</span>
+</p><ul class="itemize"><li class="li-itemize">
+Coq proof assistant,
+</li><li class="li-itemize">property-based testing (e.g. QuickCheck),
+</li><li class="li-itemize">functional or logic programming.
+</li></ul><!--TOC section id="sec1" Context-->
+<h2 id="sec1" class="section">Context</h2><!--SEC END --><p>
+Devising mechanisms for enforcing strong safety and security
+properties is often very challenging.
+This makes it hard to be confident in the correctness of such
+mechanisms without fully machine-checked proofs; e.g., in
+the Coq proof assistant&#XA0;[<a href="#coq_manual">1</a>].
+However, carrying out these proofs while designing the mechanisms can
+be an exercise in frustration, with a great deal of time spent
+attempting to verify broken definitions, and countless iterations for
+discovering the correct lemmas and strengthening inductive invariants.
+To prevent failed proof attempts and thus reduce the overall cost of
+producing a formally verified enforcement mechanism, we advocate the
+use of <em>property-based testing</em> for systematically finding
+counterexamples.
+Property-based testing can find bugs in definitions and conjectured
+properties early in the design process, postponing proof attempts
+until we are reasonably confident that the design is correct.
+Moreover, testing can be very helpful during the proof process for
+quickly validating potential lemmas, inductive invariants, or simply
+the current proof goal.
+In order for this methodology to work well though, testing has to be
+integrated with the proof assistant.
+The long term goal of this line of research is to devise QuickChick, the
+first property-based testing framework for Coq.
+We believe that such a tool could considerably improve the proving
+experience in Coq, and thus have a significant and long lasting impact
+on the growing Coq community.</p><p>As a first step in this direction, I collaborated with researchers
+from University of Pennsylvania, Chalmers, and MSR Cambridge,
+on building the initial
+prototype of a random testing framework for Coq similar to
+QuickCheck&#XA0;[<a href="#ClaessenH00">14</a>].
+We used this framework to test noninterference for increasingly
+sophisticated dynamic information flow control (IFC) mechanisms for
+low-level abstract machines&#XA0;[<a href="#TestingNI">22</a>].
+These case studies showed that property-based random testing can
+quickly find a variety of missing-taint and missing-exception bugs,
+and incrementally guide the design of a correct version of the IFC
+mechanisms.
+We found that both the strategy for generating random programs and the
+precise formulation of the noninterference property are critically
+important for good results.</p><p>We plan to extend this initial prototype, building on the existing
+research literature on property-based testing
+(e.g., random testing&#XA0;[<a href="#ClaessenH00">14</a>, <a href="#DybjerHT03">19</a>, <a href="#BerghoferN04">6</a>, <a href="#Bulwahn12">9</a>],
+exhaustive testing with small instances&#XA0;[<a href="#RuncimanNL08">29</a>, <a href="#AlloyBook">23</a>, <a href="#Bulwahn12">9</a>],
+narrowing-based testing&#XA0;[<a href="#Lindblad07">26</a>, <a href="#RuncimanNL08">29</a>, <a href="#ChristiansenF08">13</a>, <a href="#Bulwahn12">9</a>], etc.),
+as well as related work on
+generating executable code from inductive
+definitions&#XA0;[<a href="#BerghoferN00">5</a>, <a href="#DelahayeDE07">16</a>, <a href="#BerghoferBH09">4</a>, <a href="#TollitteDD12">30</a>],
+automatically generating data that satisfies the preconditions
+of the tested property&#XA0;[<a href="#FischerK07">20</a>, <a href="#Bulwahn12smartgen">10</a>, <a href="#CarlierDG13">12</a>],
+integrating testing and proof automation&#XA0;[<a href="#raju2011integrating">28</a>],
+exploiting model finders&#XA0;[<a href="#Weber05">31</a>, <a href="#BlanchetteN10">7</a>],
+etc. However, our ambition goes beyond bringing some of these existing techniques
+to Coq and integrating them into a cohesive testing framework.
+Our research goal is to extend the state of the art in property-based testing
+by working out several promising new ideas that could
+become QuickChick&#X2019;s killer features.
+Two of these ideas, smart mutation and the deep integration with
+Coq/SSReflect, are explained in more detail below and constitute the
+main focus of this proposal.</p>
+<!--TOC section id="sec2" Smart mutation-->
+<h2 id="sec2" class="section">1&#XA0;&#XA0;Smart mutation</h2><!--SEC END --><p>The first idea is to use <em>smart mutation</em> to evaluate and improve
+the effectiveness of property-based testing and to obtain confidence
+not just that no bugs are found, but that no bugs are left.<sup><a id="text1" href="#note1">1</a></sup>
+As a first step we are focusing our attention on testing the soundness
+of static and dynamic enforcement mechanisms (e.g., type systems,
+dynamic IFC systems, etc.).
+In this case, we are looking at smart mutation strategies that can
+only make the enforcement mechanism more permissive and that cover
+whole classes of interesting pointwise bugs.
+This enables the following iterative workflow:
+We start with the best guess for the mechanism and enforced property,
+and use property-based testing to find and fix bugs in the definitions
+and conjectured property.
+When we can no longer find any bugs this way, we use mutation to
+evaluate how good our testing is by generating a large number of more
+permissive enforcement mechanisms and separately testing each of them.
+If testing finds a counterexample to a mutant that mutant is killed,
+and if testing kills all generated mutants then we are done: we get
+high confidence that no bugs are left and our mechanism is sound with
+respect to the tested property.
+On the other hand, if some mutants escape testing, we inspect them one
+by one and try to manually construct a counterexample against any of
+them.
+In case we can manually find such a counterexample that was missed by
+testing, then our testing is clearly not good enough, and we need to
+improve it until the new counterexample is found automatically, e.g., by
+fixing bugs in the generator, or changing the random probability
+distribution, or coming up with a smarter generator.
+In practice we observed that improving testing based on a
+counterexample often kills a large number of other live mutants, and
+also sometimes finds new counterexamples against the current
+non-mutated design, which we fix before continuing.
+At the end, either all mutants are killed, or we are left with some
+live mutants to which we cannot find counterexamples by hand.
+These remaining live mutants are probably correct, and since we are
+only generating more permissive mutants we can use them to produce a
+better enforcement mechanism by applying these positive mutations to
+our current design, and iterating the whole process.</p><p>We believe that this workflow would be extremely effective in practice.
+However, in order to support this workflow, we need to be able to
+automatically generate smart mutants.
+While syntactic code mutation has been used to empirically evaluate
+the effectiveness of testing for decades&#XA0;[<a href="#JiaH11">24</a>], the existing
+techniques do not generate only more permissive mutants, which in our
+case means one would have to manually weed thorough lots of mutations
+which are simply stupid, and for which not finding a counterexample
+doesn&#X2019;t produce any benefit (probably just frustration).
+In recent experiments with testing noninterference (a followup of
+[<a href="#TestingNI">22</a>]) we found that splitting the IFC enforcement
+mechanism out of the operational semantics and into a separate rule
+table<sup><a id="text2" href="#note2">2</a></sup> allows us to
+easily generate all &#X201C;missing check&#X201D; and &#X201C;missing taint&#X201D;
+mutants.<sup><a id="text3" href="#note3">3</a></sup>
+This is guaranteed to lead to a more permissive mechanism, allows us
+to cover all interesting mistakes one can make in this setting, and
+worked very well in our experiments.</p><p>The big open problem is generalizing this idea beyond IFC to arbitrary
+properties and mechanisms.
+One simple thing to try first would be writing the enforcement
+mechanism as an inductive relation in Coq and mutating this relation
+by dropping or weakening premises.
+While such relations are not directly executable, and thus not
+directly testable, a Coq plugin can often extract an executable
+variant&#XA0;[<a href="#TollitteDD12">30</a>, <a href="#DelahayeDE07">16</a>], and could be extended to
+additionally apply our mutations beforehand.
+One could try this out on the System
+F<sub><span style="font-weight:bold">&lt;:</span></sub>&#XA0;[<a href="#CardelliMMS94">11</a>, <a href="#AydemirBFFPSVWWZ05">2</a>] type
+system, or some other mechanized metatheory benchmarks&#XA0;[<a href="#Klein12">25</a>].
+</p>
+<!--TOC section id="sec3" Deep integration with Coq/SSReflect-->
+<h2 id="sec3" class="section">2&#XA0;&#XA0;Deep integration with Coq/SSReflect</h2><!--SEC END --><p>As discussed above we want QuickChick to be deeply integrated into
+the Coq proving process.
+However, an important limitation of our current prototype is that it
+only works for executable specifications written as Coq functions,
+which doesn&#X2019;t match usual Coq practice of defining things inductively.
+We could lift this limitation using the Coq plugin by Delahaye,
+Dubois, et al.&#XA0;[<a href="#TollitteDD12">30</a>, <a href="#DelahayeDE07">16</a>] for producing
+executable variants of inductively defined relations.
+More ambitiously, we would like to take advantage of QuickChick at any
+point during the proof process, by freely switching between
+declarative and efficiently executable definitions.
+We believe we can achieve this by integrating testing into the normal
+workflow of small-scale reflection proofs, as supported by the
+SSReflect extension for Coq&#XA0;[<a href="#SSReflect">21</a>].
+However, while traditional SSReflect proofs use execution to remove
+the need for some reasoning in small proof steps, the objects defined
+in the SSReflect library and used in proofs are often not fully
+executable and often not efficiently executable either.
+We believe we can support efficient testing during SSReflect proofs by
+exploiting a recent refinement framework by
+D&#XE9;n&#XE8;s&#XA0;et al. [<a href="#DenesMS12">17</a>, <a href="#CohenDM13">15</a>], which allows
+maintaining a correspondence and switching between proof-oriented and
+computation-oriented views of objects and properties.</p><p>Finally, testing can also help during automated proof search, as
+illustrated by recent work on ACL2s&#XA0;[<a href="#raju2011integrating">28</a>].
+Moreover, automatically finding the witness of an existential
+quantifier is the same problem as generating data that satisfies the
+preconditions of the tested property, for which solutions have already
+been proposed&#XA0;[<a href="#FischerK07">20</a>, <a href="#Bulwahn12smartgen">10</a>, <a href="#CarlierDG13">12</a>].
+This kind of usage requires to integrate testing more seamlessly into
+Coq though, so that the result of testing and the produced
+counterexamples are available to Coq tactics and terms.
+While our current prototype implements most things in Coq, it uses
+extraction to generate Haskell programs that are then executed
+efficiently outside of Coq,<sup><a id="text4" href="#note4">4</a></sup> and we could envision exploiting recent
+progress on efficient Coq reduction&#XA0;[<a href="#BoespflugDG11">8</a>] to complement
+extraction.
+The random testing mode of the resulting internal testing framework
+would need to use a deterministic random number generator implemented
+in Coq, with the initial seed introduced in the environment through a
+plugin.
+Additional care needs to be taken when using random testing inside
+tactics and proofs, which need to be stable across multiple runs and
+different machines.
+Potential solutions include capturing the random seed or the produced
+counterexamples and saving them inside the proof script, or replacing
+random testing with exhaustive testing with small
+instances&#XA0;[<a href="#RuncimanNL08">29</a>, <a href="#AlloyBook">23</a>, <a href="#Bulwahn12">9</a>] and
+narrowing-based testing&#XA0;[<a href="#Lindblad07">26</a>, <a href="#RuncimanNL08">29</a>, <a href="#ChristiansenF08">13</a>, <a href="#Bulwahn12">9</a>] when possible.</p><!--TOC section id="sec4" References-->
+<h2 id="sec4" class="section">References</h2><!--SEC END --><dl class="thebibliography"><dt class="dt-thebibliography">
+<a id="coq_manual">[1]</a></dt><dd class="dd-thebibliography">
+<a href="http://coq.inria.fr/refman/"><em>The </em><em>Coq</em><em> Proof Assistant</em></a>, 2012.
+Version 8.4.</dd><dt class="dt-thebibliography"><a id="AydemirBFFPSVWWZ05">[2]</a></dt><dd class="dd-thebibliography">
+B.&#XA0;E. Aydemir, A.&#XA0;Bohannon, M.&#XA0;Fairbairn, J.&#XA0;N. Foster, B.&#XA0;C. Pierce,
+P.&#XA0;Sewell, D.&#XA0;Vytiniotis, G.&#XA0;Washburn, S.&#XA0;Weirich, and S.&#XA0;Zdancewic.
+<a href="http://research.microsoft.com/en-us/people/dimitris/poplmark.pdf">Mechanized
+metatheory for the masses: The PoplMark challenge</a>.
+<em>TPHOLs</em>. 2005.</dd><dt class="dt-thebibliography"><a id="PicoCoq2013">[3]</a></dt><dd class="dd-thebibliography">
+A.&#XA0;Azevedo de Amorim, N.&#XA0;Collins, A.&#XA0;DeHon, D.&#XA0;Demange, C.&#XA0;Hri&#X163;cu,
+D.&#XA0;Pichardie, B.&#XA0;C. Pierce, R.&#XA0;Pollack, and A.&#XA0;Tolmach.
+<a href="http://www.crash-safe.org/node/29">A verified information-flow
+architecture</a>.
+<em>POPL</em>, 2014.
+To appear.</dd><dt class="dt-thebibliography"><a id="BerghoferBH09">[4]</a></dt><dd class="dd-thebibliography">
+S.&#XA0;Berghofer, L.&#XA0;Bulwahn, and F.&#XA0;Haftmann.
+<a href="http://www4.in.tum.de/~haftmann/pdf/turning_inductive_into_equational_specifications_berghofer_bulwahn_haftmann.pdf">Turning
+inductive into equational specifications</a>.
+<em>TPHOLs</em>. 2009.</dd><dt class="dt-thebibliography"><a id="BerghoferN00">[5]</a></dt><dd class="dd-thebibliography">
+S.&#XA0;Berghofer and T.&#XA0;Nipkow.
+<a href="http://www4.in.tum.de/publ/papers/TYPES2000.pdf">Executing
+higher order logic</a>.
+<em>TYPES</em>. 2002.</dd><dt class="dt-thebibliography"><a id="BerghoferN04">[6]</a></dt><dd class="dd-thebibliography">
+S.&#XA0;Berghofer and T.&#XA0;Nipkow.
+<a href="http://www4.in.tum.de/~nipkow/pubs/sefm04.ps.gz">Random testing
+in Isabelle/HOL</a>.
+<em>SEFM</em>. 2004.</dd><dt class="dt-thebibliography"><a id="BlanchetteN10">[7]</a></dt><dd class="dd-thebibliography">
+J.&#XA0;C. Blanchette and T.&#XA0;Nipkow.
+<a href="http://link.springer.com/chapter/10.1007%2F978-3-642-14052-5_11">Nitpick:
+A counterexample generator for higher-order logic based on a relational model
+finder</a>.
+<em>ITP</em>. 2010.</dd><dt class="dt-thebibliography"><a id="BoespflugDG11">[8]</a></dt><dd class="dd-thebibliography">
+M.&#XA0;Boespflug, M.&#XA0;D&#XE9;n&#XE8;s, and B.&#XA0;Gr&#XE9;goire.
+<a href="http://link.springer.com/chapter/10.1007%2F978-3-642-25379-9_26">Full
+reduction at full throttle</a>.
+<em>CPP</em>. 2011.</dd><dt class="dt-thebibliography"><a id="Bulwahn12">[9]</a></dt><dd class="dd-thebibliography">
+L.&#XA0;Bulwahn.
+<a href="http://www21.in.tum.de/~bulwahn/cpp2012.pdf">The new
+Quickcheck for Isabelle - random, exhaustive and symbolic testing under
+one roof</a>.
+<em>CPP</em>. 2012.</dd><dt class="dt-thebibliography"><a id="Bulwahn12smartgen">[10]</a></dt><dd class="dd-thebibliography">
+L.&#XA0;Bulwahn.
+<a href="http://www21.in.tum.de/~bulwahn/lpar18.pdf">Smart testing of
+functional programs in Isabelle</a>.
+<em>LPAR</em>. 2012.</dd><dt class="dt-thebibliography"><a id="CardelliMMS94">[11]</a></dt><dd class="dd-thebibliography">
+L.&#XA0;Cardelli, S.&#XA0;Martini, J.&#XA0;C. Mitchell, and A.&#XA0;Scedrov.
+<a href="http://www.sciencedirect.com/science/article/pii/S0890540184710133">An
+extension of System F with subtyping</a>.
+<em>Information and Computation</em>, 109(1/2):4&#X2013;56, 1994.</dd><dt class="dt-thebibliography"><a id="CarlierDG13">[12]</a></dt><dd class="dd-thebibliography">
+M.&#XA0;Carlier, C.&#XA0;Dubois, and A.&#XA0;Gotlieb.
+<a href="http://dx.doi.org/10.1007/978-3-642-29578-2_9">FocalTest: A
+constraint programming approach for property-based testing</a>.
+In <em>Software and Data Technologies</em>, volume 170 of <em>Communications in Computer and Information Science</em>, pages 140&#X2013;155.
+Springer, 2013.</dd><dt class="dt-thebibliography"><a id="ChristiansenF08">[13]</a></dt><dd class="dd-thebibliography">
+J.&#XA0;Christiansen and S.&#XA0;Fischer.
+<a href="http://www-ps.informatik.uni-kiel.de/~sebf/data/pub/flops08.pdf">EasyCheck
+- test data for free</a>.
+<em>FLOPS</em>. 2008.</dd><dt class="dt-thebibliography"><a id="ClaessenH00">[14]</a></dt><dd class="dd-thebibliography">
+K.&#XA0;Claessen and J.&#XA0;Hughes.
+<a href="http://www.eecs.northwestern.edu/~robby/courses/395-495-2009-fall/quick.pdf">QuickCheck:
+a lightweight tool for random testing of Haskell programs</a>.
+<em>ICFP</em>. 2000.</dd><dt class="dt-thebibliography"><a id="CohenDM13">[15]</a></dt><dd class="dd-thebibliography">
+C.&#XA0;Cohen, M.&#XA0;D&#XE9;n&#XE8;s, and A.&#XA0;M&#XF6;rtberg.
+<a href="http://www.maximedenes.fr/download/refinements.pdf">Refinements
+for free!</a>
+<em>CPP</em>, 2013.
+To appear.</dd><dt class="dt-thebibliography"><a id="DelahayeDE07">[16]</a></dt><dd class="dd-thebibliography">
+D.&#XA0;Delahaye, C.&#XA0;Dubois, and J.-F. &#XC9;tienne.
+<a href="http://cedric.cnam.fr/~delahaye/papers/pred-exec%20(TPHOLs'07).pdf">Extracting
+purely functional contents from logical inductive types</a>.
+<em>TPHOLs</em>. 2007.</dd><dt class="dt-thebibliography"><a id="DenesMS12">[17]</a></dt><dd class="dd-thebibliography">
+M.&#XA0;D&#XE9;n&#XE8;s, A.&#XA0;M&#XF6;rtberg, and V.&#XA0;Siles.
+<a href="http://link.springer.com/chapter/10.1007%2F978-3-642-32347-8_7">A
+refinement-based approach to computational algebra in Coq</a>.
+<em>ITP</em>. 2012.</dd><dt class="dt-thebibliography"><a id="DijkstraBR69">[18]</a></dt><dd class="dd-thebibliography">
+E.&#XA0;W. Dijkstra.
+<a href="http://homepages.cs.ncl.ac.uk/brian.randell/NATO/nato1969.PDF">Software
+engineering techniques on page 16</a>.
+Report on a conference sponsored by the NATO Science Committee, Rome,
+Italy, 27&#X2013;31 October 1969.</dd><dt class="dt-thebibliography"><a id="DybjerHT03">[19]</a></dt><dd class="dd-thebibliography">
+P.&#XA0;Dybjer, Q.&#XA0;Haiyan, and M.&#XA0;Takeyama.
+<a href="http://www.cse.chalmers.se/~peterd/papers/Testing_Proving.pdf">Combining
+testing and proving in dependent type theory</a>.
+<em>TPHOLs</em>. 2003.</dd><dt class="dt-thebibliography"><a id="FischerK07">[20]</a></dt><dd class="dd-thebibliography">
+S.&#XA0;Fischer and H.&#XA0;Kuchen.
+<a href="http://www-ps.informatik.uni-kiel.de/~sebf/pub/ppdp07.html">Systematic
+generation of glass-box test cases for functional logic programs</a>.
+<em>PPDP</em>. 2007.</dd><dt class="dt-thebibliography"><a id="SSReflect">[21]</a></dt><dd class="dd-thebibliography">
+G.&#XA0;Gonthier and A.&#XA0;Mahboubi.
+<a href="http://hal.inria.fr/docs/00/84/38/81/PDF/main.pdf">A small
+scale reflection extension for the Coq system</a>.
+Technical Report Research Report Number 6455, Microsoft Research
+INRIA, 2009.</dd><dt class="dt-thebibliography"><a id="TestingNI">[22]</a></dt><dd class="dd-thebibliography">
+C.&#XA0;Hri&#X163;cu, J.&#XA0;Hughes, B.&#XA0;C. Pierce, A.&#XA0;Spector-Zabusky, D.&#XA0;Vytiniotis,
+A.&#XA0;Azevedo de Amorim, and L.&#XA0;Lampropoulos.
+<a href="http://www.crash-safe.org/node/24">Testing noninterference,
+quickly</a>.
+<em>ICFP</em>, 2013.</dd><dt class="dt-thebibliography"><a id="AlloyBook">[23]</a></dt><dd class="dd-thebibliography">
+D.&#XA0;Jackson.
+<a href="http://alloy.mit.edu/alloy/book.html"><em>Software
+Abstractions: Logic, Language, and Anlysis</em></a>.
+The MIT Press, 2011.</dd><dt class="dt-thebibliography"><a id="JiaH11">[24]</a></dt><dd class="dd-thebibliography">
+Y.&#XA0;Jia and M.&#XA0;Harman.
+<a href="http://crest.cs.ucl.ac.uk/fileadmin/crest/sebasepaper/JiaH10.pdf">An
+analysis and survey of the development of mutation testing</a>.
+<em>IEEE Transactions on Software Engineering</em>, 37(5):649&#X2013;678,
+2011.</dd><dt class="dt-thebibliography"><a id="Klein12">[25]</a></dt><dd class="dd-thebibliography">
+C.&#XA0;Klein, J.&#XA0;Clements, C.&#XA0;Dimoulas, C.&#XA0;Eastlund, M.&#XA0;Felleisen, M.&#XA0;Flatt, J.&#XA0;A.
+McCarthy, J.&#XA0;Rafkind, S.&#XA0;Tobin-Hochstadt, and R.&#XA0;B. Findler.
+<a href="http://eecs.northwestern.edu/~robby/lightweight-metatheory/">Run your
+research: On the effectiveness of lightweight mechanization</a>.
+<em>POPL</em>, 2012.</dd><dt class="dt-thebibliography"><a id="Lindblad07">[26]</a></dt><dd class="dd-thebibliography">
+F.&#XA0;Lindblad.
+<a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.116.2439&rep=rep1&type=pdf">Property
+directed generation of first-order test data</a>.
+<em>TFP</em>, 2007.</dd><dt class="dt-thebibliography"><a id="GenLabels">[27]</a></dt><dd class="dd-thebibliography">
+B.&#XA0;Montagu, B.&#XA0;C. Pierce, and R.&#XA0;Pollack.
+<a href="http://www.crash-safe.org/node/25">A theory of information-flow
+labels</a>.
+<em>CSF</em>. 2013.</dd><dt class="dt-thebibliography"><a id="raju2011integrating">[28]</a></dt><dd class="dd-thebibliography">
+H.&#XA0;Raju&#XA0;Chamarthi, P.&#XA0;Dillinger, M.&#XA0;Kaufmann, and P.&#XA0;Manolios.
+<a href="http://arxiv.org/abs/1105.4394">Integrating testing and
+interactive theorem proving</a>.
+<em>ACL2</em>, 2011.</dd><dt class="dt-thebibliography"><a id="RuncimanNL08">[29]</a></dt><dd class="dd-thebibliography">
+C.&#XA0;Runciman, M.&#XA0;Naylor, and F.&#XA0;Lindblad.
+<a href="http://www.cs.york.ac.uk/fp/smallcheck/smallcheck.pdf">Smallcheck and
+Lazy SmallCheck: automatic exhaustive testing for small values</a>.
+<em>Haskell</em>. 2008.</dd><dt class="dt-thebibliography"><a id="TollitteDD12">[30]</a></dt><dd class="dd-thebibliography">
+P.-N. Tollitte, D.&#XA0;Delahaye, and C.&#XA0;Dubois.
+<a href="http://link.springer.com/chapter/10.1007%2F978-3-642-35308-6_9">Producing
+certified functional code from inductive specifications</a>.
+<em>CPP</em>. 2012.</dd><dt class="dt-thebibliography"><a id="Weber05">[31]</a></dt><dd class="dd-thebibliography">
+T.&#XA0;Weber.
+<a href="http://lara.epfl.ch/w/_media/projects:weber-hol-models.pdf">Bounded
+model generation for Isabelle/HOL</a>.
+<em>ENTCS</em>, 125(3):103&#X2013;116, 2005.</dd></dl><!--BEGIN NOTES document-->
+<hr class="footnoterule"><dl class="thefootnotes"><dt class="dt-thefootnotes">
+<a id="note1" href="#text1">1</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">
+While Edsger W. Dijkstra famously stated that &#X201C;Testing shows the
+presence, not the absence of bugs&#X201D;&#XA0;[<a href="#DijkstraBR69">18</a>], we believe
+that additionally testing the testing infrastructure by
+systematically introducing large classes of bugs and making sure
+they are all found can produce high confidence in the results.</div>
+</dd><dt class="dt-thefootnotes"><a id="note2" href="#text2">2</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">This kind of split is useful beyond testing, as shown
+by our recent symbolic rule machine&#XA0;[<a href="#PicoCoq2013">3</a>].</div>
+</dd><dt class="dt-thefootnotes"><a id="note3" href="#text3">3</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">For &#X201C;missing taint&#X201D; we exploit the fact that IFC
+labels form a lattice&#XA0;[<a href="#GenLabels">27</a>].</div>
+</dd><dt class="dt-thefootnotes"><a id="note4" href="#text4">4</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">This also exploits unsafe
+features of Haskell like tracing and printing in the middle of the
+computation, which are useful for debugging, but which would be hard
+to replicate in Coq.</div>
+</dd></dl>
+<!--END NOTES-->
+<!--CUT END -->
+<!--HTMLFOOT-->
+<!--ENDHTML-->
+<!--FOOTER-->
+<hr style="height:2"><blockquote class="quote"><em>This document was translated from L<sup>A</sup>T<sub>E</sub>X by
+</em><a href="http://hevea.inria.fr/index.html"><em>H</em><em><span style="font-size:small"><sup>E</sup></span></em><em>V</em><em><span style="font-size:small"><sup>E</sup></span></em><em>A</em></a><em>.</em></blockquote></body>
+</html>

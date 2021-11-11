@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.06">
+<style type="text/css">
+.li-itemize{margin:1ex 0ex;}
+.li-enumerate{margin:1ex 0ex;}
+.dd-description{margin:0ex 0ex 1ex 4ex;}
+.dt-description{margin:0ex;}
+.toc{list-style:none;}
+.footnotetext{margin:0ex; padding:0ex;}
+div.footnotetext P{margin:0px; text-indent:1em;}
+.thefootnotes{text-align:left;margin:0ex;}
+.dt-thefootnotes{margin:0em;}
+.dd-thefootnotes{margin:0em 0em 0em 2em;}
+.footnoterule{margin:1em auto 1em 0px;width:50%;}
+.caption{padding-left:2ex; padding-right:2ex; margin-left:auto; margin-right:auto}
+.title{margin:2ex auto;text-align:center}
+.titlemain{margin:1ex 2ex 2ex 1ex;}
+.titlerest{margin:0ex 2ex;}
+.center{text-align:center;margin-left:auto;margin-right:auto;}
+.flushleft{text-align:left;margin-left:0ex;margin-right:auto;}
+.flushright{text-align:right;margin-left:auto;margin-right:0ex;}
+div table{margin-left:inherit;margin-right:inherit;margin-bottom:2px;margin-top:2px}
+td table{margin:auto;}
+table{border-collapse:collapse;}
+td{padding:0;}
+.cellpadding0 tr td{padding:0;}
+.cellpadding1 tr td{padding:1px;}
+pre{text-align:left;margin-left:0ex;margin-right:auto;}
+blockquote{margin-left:4ex;margin-right:4ex;text-align:left;}
+td p{margin:0px;}
+.boxed{border:1px solid black}
+.textboxed{border:1px solid black}
+.vbar{border:none;width:2px;background-color:black;}
+.hbar{border:none;height:2px;width:100%;background-color:black;}
+.hfill{border:none;height:1px;width:200%;background-color:black;}
+.vdisplay{border-collapse:separate;border-spacing:2px;width:auto; empty-cells:show; border:2px solid red;}
+.vdcell{white-space:nowrap;padding:0px; border:2px solid green;}
+.display{border-collapse:separate;border-spacing:2px;width:auto; border:none;}
+.dcell{white-space:nowrap;padding:0px; border:none;}
+.dcenter{margin:0ex auto;}
+.vdcenter{border:solid #FF8000 2px; margin:0ex auto;}
+.minipage{text-align:left; margin-left:0em; margin-right:auto;}
+.marginpar{border:solid thin black; width:20%; text-align:left;}
+.marginparleft{float:left; margin-left:0ex; margin-right:1ex;}
+.marginparright{float:right; margin-left:1ex; margin-right:0ex;}
+.theorem{text-align:left;margin:1ex auto 1ex 0ex;}
+.part{margin:2ex auto;text-align:center}
+</style>
+<title>Micro-Policies: Formally Verified Low-Level Tagging Schemes for
+Safety and Security
+</title>
+</head>
+<body >
+<!--HEVEA command line is: /usr/bin/hevea -fix micro-policies.tex -->
+<!--CUT STYLE article--><!--CUT DEF section 1 --><table class="title"><tr><td style="padding:1ex"><h1 class="titlemain">Micro-Policies: Formally Verified Low-Level Tagging Schemes for
+Safety and Security</h1></td></tr>
+</table><p><span style="font-weight:bold">Advisor:</span> <a href="http://prosecco.gforge.inria.fr/personal/hritcu/">C&#X103;t&#X103;lin Hri&#X163;cu</a> &#X27E8;<a href="mailto:catalin.hritcu@gmail.com">catalin.hritcu@gmail.com</a>&#X27E9;
+<br>
+<br>
+<span style="font-weight:bold">INRIA Team:</span> <a href="http://prosecco.gforge.inria.fr/">Prosecco</a>
+<br>
+<br>
+<span style="font-weight:bold">Location:</span> <a href="https://maps.google.com/maps?q=23+Avenue+d'Italie,+75013+Paris,+France">23 Avenue d&#X2019;Italie, Paris, France</a>
+<br>
+<br>
+<span style="font-weight:bold">Language:</span> English (no French)
+<br>
+<br>
+<span style="font-weight:bold">Existing skills or strong desire to learn:</span>
+</p><ul class="itemize"><li class="li-itemize">
+formal verification in the Coq proof assistant,
+</li><li class="li-itemize">programming languages theory,
+</li><li class="li-itemize">functional programming.
+</li></ul><!--TOC section id="sec:intro" Context-->
+<h2 id="sec:intro" class="section">Context</h2><!--SEC END --><p>Today&#X2019;s computer systems are distressingly insecure.
+A host of vulnerabilities arise from the violation of known, but
+in-practice unenforceable, safety and security policies, including
+high-level programming models and critical invariants of low-level
+programs.
+This project<sup><a id="text1" href="#note1">1</a></sup> is aimed at showing that a rich
+and valuable set of <em>micro-policies</em> can be efficiently enforced
+by a new generic hardware-software mechanism and result in more secure
+and robust computer systems.
+The key idea is to add metadata to the data being processed (e.g.,
+&#X201C;this is an instruction,&#X201D; &#X201C;this word comes from the network,&#X201D;
+&#X201C;this one is private&#X201D;), to propagate the metadata as instructions
+are executed, and to check that invariants on the metadata are enforced
+throughout the computation.
+For this we are working on extending a traditional hardware architecture
+so that every word of data in the machine (whether in memory or in
+registers) is associated a word-sized tag.
+In particular, tags can be pointers to arbitrary data structures in
+memory.
+The interpretation of these tags is left entirely to software: the
+hardware just propagates tags from operands to results as each
+instruction is executed, following software-defined rules.</p><p>Abstractly, the tag propagation rules can be viewed as a
+partial function from argument tuples of the form (<em>opcode</em>, <em>pc tag</em>, <em>argument</em><sub>1</sub><em> tag</em>, <em>argument</em><sub>2</sub><em> tag</em>, &#X2026;) to
+result tuples of the form (<em>new pc tag</em>, <em>result tag</em>),
+meaning &#X201C;if the next instruction to be executed is <em>opcode</em>, the
+current tag of the program counter (PC) is <em>pc tag</em>, and the
+arguments expected by this opcode are tagged <em>argument</em><sub>1</sub><em> tag</em>,
+etc., then executing the instruction is allowed and, in the new state
+of the machine, the PC should be tagged <em>new pc tag</em> and any new
+data created by the instruction should be tagged <em>result tag</em>.&#X201D;
+In general, the graph of this function <em>in extenso</em> will be huge;
+so, concretely, a hardware <em>tag management unit (TMU)</em> maintains a
+cache of recently-used rule instances (i.e., input tags / output tags
+pairs).
+On each instruction dispatch (in parallel with the logic implementing
+the usual behavior of the instruction&#X2014;e.g., addition), the TMU forms
+an argument tuple as described above and looks it up in the rule
+cache. If the lookup is successful, the result tuple includes a new
+tag for the PC and a tag for the result of the instruction (if any);
+these are combined with the ordinary results of instruction execution
+to yield the next machine state. Otherwise, if the lookup is
+unsuccessful, the hardware invokes a <em>cache fault handler</em>&#X2014;a
+trusted piece of system software with the job of checking whether the
+faulting combination of tags corresponds to a micro-policy violation or
+whether it should be allowed.
+In the latter case, an appropriate rule
+instance specifying tags for the instruction&#X2019;s results is added to the
+cache, and the faulting instruction is restarted.
+As already mentioned above, the hardware is generic and the
+interpretation of micro-policies is programmed in software, with the
+results cached in hardware for common-case efficiency.</p><p>Many useful dynamic enforcement mechanisms for safety and security fit
+this micro-policy model:
+</p><ul class="itemize"><li class="li-itemize">
+stack and kernel protection (see section&#XA0;<a href="#sec%3Alow-level">1</a>);
+</li><li class="li-itemize">basic type and memory safety (see section&#XA0;<a href="#sec%3Alow-level">1</a>);
+</li><li class="li-itemize">fine-grained dynamic information flow control
+(IFC)&#XA0;[<a href="#Exceptional">8</a>, <a href="#TestingNI">9</a>, <a href="#PicoCoq2013">4</a>];
+</li><li class="li-itemize">control-flow integrity (CFI)&#XA0;[<a href="#AbadiBEL09">2</a>];
+</li><li class="li-itemize">data race detection&#XA0;[<a href="#Savage1997">11</a>];
+</li><li class="li-itemize">linear pointers, guaranteeing absence of aliasing;
+</li><li class="li-itemize">marking pointers with permissions like &#X201C;readable&#X201D;,
+&#X201C;writeable&#X201D; &#X201C;jumpable&#X201D;, or &#X201C;callable&#X201D;;
+</li><li class="li-itemize">closures (i.e., first-class functions, or code pointers together
+with protected local environments);
+</li><li class="li-itemize">dynamic sealing&#XA0;[<a href="#Morris%3A%3A73">10</a>, <a href="#SumiiPierce2004">13</a>]
+and trademarks&#XA0;[<a href="#Morris%3A%3A73">10</a>] (the latter can for instance be
+used to cache the result of dynamic contracts);
+</li><li class="li-itemize">user-defined metadata (i.e., providing operations for setting
+and getting metadata to values);
+</li><li class="li-itemize">dynamic type tags (e.g., for C or Scheme);
+</li><li class="li-itemize">higher-order contracts&#XA0;[<a href="#FindlerF02">7</a>] (recent
+proposals&#XA0;[<a href="#DimoulasFFF11">6</a>] use sophisticated mechanisms for
+tracking components and assigning blame that could probably be
+encoded as tags);
+</li><li class="li-itemize">taint tracking;
+</li><li class="li-itemize">isolation (e.g., replacement for virtual memory).
+</li></ul><p>When seen from the highest level a micro-policy is the combination of
+a set of tags, a set of rules, and a set of operations.
+Tags are often drawn from a simple datatype, for instance a list of
+principals for an IFC micro-policy&#XA0;[<a href="#PicoCoq2013">4</a>].
+As discussed above, the rules are just a convenient description of a
+partial function from a tuple of tags to another tuple of tags. They
+are used to monitor program execution and determine how tags are
+propagated.
+The <em>operations</em> are pieces of privileged code that can be invoked
+by user programs, while internally performing dangerous operations
+such as freely inspecting and changing tags (they are similar to
+system calls in an operating system).
+For instance, declassifying a secret piece of information is an
+operation in the IFC micro-policy.
+While rules are functional and are cached by the TMU, operations can
+be stateful.
+For instance, memory allocation and freeing could be the operations
+of a memory safety micro-policy (see section&#XA0;<a href="#sec%3Alow-level">1</a>).</p><p>The goal of this proposal is to come up with a clean formal framework
+in Coq&#XA0;[<a href="#coq_manual">1</a>] for expressing (section&#XA0;<a href="#sec%3Ametalanguage">2</a>),
+composing (section&#XA0;<a href="#sec%3Acomposition">3</a>), and verifying
+(sections <a href="#sec%3Alow-level">1</a>, <a href="#sec%3Ametalanguage">2</a>, and
+<a href="#sec%3Acomposition">3</a>) arbitrary micro-policies, and to
+instantiate this framework on a diverse set of interesting examples
+(initially on the low-level micro-policies in section&#XA0;<a href="#sec%3Alow-level">1</a>,
+and later on any of the ones above).
+This ambitious goal can naturally be split into several internship
+or thesis topics focusing on specific aspects.</p>
+<!--TOC section id="sec:low-level" Low-level Safety Micro-Policies-->
+<h2 id="sec:low-level" class="section">1&#XA0;&#XA0;Low-level Safety Micro-Policies</h2><!--SEC END --><p>We are currently devising micro-policies for <em>stack and kernel
+protection</em>, as well as <em>(dynamic) basic type and memory
+safety</em>, for a simplified model of a conventional processor
+extended with tags and a TMU.</p>
+<!--TOC paragraph id="sec3" Example: memory safety micro-policy-->
+<h4 id="sec3" class="paragraph">Example: memory safety micro-policy</h4><!--SEC END --><p>
+For instance, the memory safety micro-policy uses fine-grained tags to
+detect all spatial (e.g., accessing an array out of its bounds) and
+temporal (e.g., referencing through a pointer after the region has been
+freed) memory safety violations involving heap-allocated
+data.
+Such violations are a common source of serious security
+vulnerabilities&#XA0;[<a href="#ShellcoderHandbook">3</a>, <a href="#Szekeres2013">14</a>] (e.g., stack- and heap-based
+overflows,
+respectively exploitable use-after-free
+and double-free bugs).
+Intuitively, for each new allocation we make up a fresh <em>block id</em>
+<span style="font-family:monospace">n</span> and use <span style="font-family:monospace">n</span> in the tag of each memory location in the
+newly created memory block (<em>&#XE0; la</em> <span style="font-family:monospace">memset</span>).
+The pointer to the new block also has <span style="font-family:monospace">n</span> in its tag.
+Later, when we dereference through a pointer, we check that its block
+id is the same as the block id on the memory cell to which it points.
+When a block is freed, the tags on all its cells are changed to a
+constant tag representing non-reference-able memory.
+If we additionally use tags to distinguish between pointers and
+integers, we can basically turn pointers into &#X201C;unforgeable
+capabilities&#X201D; for the memory regions that they point to, in the sense
+that only one who was explicitly passed a pointer to a region can read
+or write its contents.</p><p>More precisely, the memory safety micro-policy uses three kinds of
+tags: one for values (<span style="font-family:monospace">V</span>), another one for currently allocated
+memory locations (<span style="font-family:monospace">M</span>), and another one for free memory locations
+(<span style="font-family:monospace">F</span>; we assume that the entire memory starts out tagged <span style="font-family:monospace">F</span>).
+The structure of tags is captured by the following datatype:
+</p><pre class="verbatim">data Tag = V(Type) | M(n,Type) | F
+</pre><p>Both values and memory locations have an associated <span style="font-family:monospace">Type</span>. There
+are only two <span style="font-family:monospace">Type</span>s: integers (<span style="font-family:monospace">I</span>) and pointers (<span style="font-family:monospace">P</span>).
+</p><pre class="verbatim">data Type = I | P(n)
+</pre><p>As explained above, the tag of memory locations and the type of
+pointers includes a block identifier <span style="font-family:monospace">n</span>, which in our case is
+simply the address where the corresponding memory block starts.</p><p>The allocation operation first does the actual allocation as usual
+(<em>&#XE0; la</em> <span style="font-family:monospace">malloc</span>) obtaining an address <span style="font-family:monospace">n</span> and then
+fills the new block with zeroes tagged <span style="font-family:monospace">M(n,I)</span> (<em>&#XE0; la</em> <span style="font-family:monospace">memset</span>) and returns the value <span style="font-family:monospace">n</span> tagged with <span style="font-family:monospace">V(P(n))</span>.
+The deallocation operation first updates its internal data
+structures as usual and then tags the entire deallocated block with
+<span style="font-family:monospace">F</span>.</p><p>In order to define the rules for this policy we first define a simple
+domain specific language (DSL) of tag expressions <span style="font-family:monospace">TE</span>:
+</p><pre class="verbatim">data TE = TAG1 | TAG2 | TAG3 | TAGPC | V(TYPE) | M(NE,TYPE)
+data TYPE = I | P(NE) | GET_MT(TE)
+data NE = GET_MN(TE) | GET_VPN(TE)
+</pre><p>The expressions <span style="font-family:monospace">TAG1</span>, <span style="font-family:monospace">TAG2</span>, <span style="font-family:monospace">TAG3</span>, and <span style="font-family:monospace">TAGPC</span>
+are variables referring to the corresponding part of the input tag
+tuple.
+Tag expression <span style="font-family:monospace">V(TYPE)</span> constructs a value tag given a type
+expression <span style="font-family:monospace">TYPE</span>.
+Similarly, expression <span style="font-family:monospace">M(NE,TYPE)</span> constructs a memory tag given a
+numeric expression <span style="font-family:monospace">NE</span> and a type expression <span style="font-family:monospace">TYPE</span>.
+The definitions of <span style="font-family:monospace">TYPE</span> and <span style="font-family:monospace">NE</span> are straightforward: <span style="font-family:monospace">GET_MN(TE)</span> and <span style="font-family:monospace">GET_MT(TE)</span> simply deconstruct a tag of the
+form <span style="font-family:monospace">M(n,Type)</span> into <span style="font-family:monospace">n</span> and <span style="font-family:monospace">Type</span>, while <span style="font-family:monospace">GET_VPN(TE)</span> returns <span style="font-family:monospace">n</span> given a pointer value tag of the form
+<span style="font-family:monospace">V(P(n))</span>.</p><p>We also define a set of boolean expressions (<span style="font-family:monospace">BE</span>) that are used
+to express conditions that are tested by the rules in order to decide
+whether the policy was violated or not:
+</p><pre class="verbatim">data BE = TRUE | IS_V(TE) | IS_VI(TE) | IS_VP(TE) | IS_M(TE) |
+          NE1 = NE2 | BE1 AND BE2 | BE1 OR BE2
+</pre><p>The symbols starting with <span style="font-family:monospace">IS</span> test whether the tag has a certain
+shape; the other constructions are straightforward.</p><p>We are now ready to define the memory safety micro-policy&#X2019;s rule table
+in terms of this DSL.
+This table corresponds only to 3 instructions (the simplest nontrivial
+machine might have a dozen), whose opcodes are listed in the first
+column.
+The second column contains a <span style="font-family:monospace">BE</span> that decides whether the
+instruction should be allowed to continue or not (in case it violates
+the policy). The third column contains a <span style="font-family:monospace">TE</span> that calculates the
+tag of the result.</p><p><br>
+</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Opcode	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Allow				</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Result</span></td></tr>
+<tr><td class="hbar" colspan=3><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">ADD	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">IS_VI(TAG1) AND IS_VI(TAG2)	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">V(I)</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">ADD</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">IS_VP(TAG1) AND IS_VI(TAG2)	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">V(P(GET_VPN(TAG1)))</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">ADD</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">IS_VI(TAG1) AND IS_VP(TAG2)	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">V(P(GET_VPN(TAG2)))</span></td></tr>
+<tr><td class="hbar" colspan=3><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">LOAD	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">IS_VP(TAG1) AND IS_M(TAG2)	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">AND GET_VPN(TAG1)=GET_MN(TAG2)</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">V(GET_MT(TAG2))</span></td></tr>
+<tr><td class="hbar" colspan=3><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">STORE	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">IS_VP(TAG1) AND IS_V(TAG2)	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">AND IS_M(TAG3)			</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">	</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">AND GET_VPN(TAG1)=GET_MN(TAG3)</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">M(GET_VPN(TAG1),GET_MT(TAG2))
+</span></td></tr>
+</table><p><br>
+Addition (<span style="font-family:monospace">ADD</span>) is only allowed on two integers, in which case
+the result is also an integer, or between an integer and a pointer, in
+which case the result is a pointer with the same block id.
+This allows pointers to be offset of outside their blocks, but the
+rules for <span style="font-family:monospace">LOAD</span> and <span style="font-family:monospace">STORE</span> prevent out-of-bounds pointers
+from being accessed.
+The rule for <span style="font-family:monospace">LOAD</span> requires that the first argument is a pointer
+tagged <span style="font-family:monospace">V(P(n))</span> (<span style="font-family:monospace">TAG1</span>) and the memory location referenced
+by this pointer is tagged <span style="font-family:monospace">M(n,Type)</span> (<span style="font-family:monospace">TAG2</span>), for the same
+block id <span style="font-family:monospace">n</span>.
+If these conditions are satisfied then the <span style="font-family:monospace">LOAD</span> is allowed and
+the resulting value is tagged <span style="font-family:monospace">V(Type)</span>.
+Similarly the rule for <span style="font-family:monospace">STORE</span> requires that the first argument to
+the store is tagged <span style="font-family:monospace">V(P(n))</span> (<span style="font-family:monospace">TAG1</span>), that the second
+argument is tagged <span style="font-family:monospace">V(Type)</span> (<span style="font-family:monospace">TAG2</span>), and that the memory
+location referenced by the first argument is tagged <span style="font-family:monospace">M(n,Type)</span>
+(<span style="font-family:monospace">TAG3</span>), again for the same block id <span style="font-family:monospace">n</span>.
+If these conditions are satisfied then the <span style="font-family:monospace">STORE</span> is allowed and
+the written memory location is tagged <span style="font-family:monospace">M(n,Type)</span> afterwards.</p>
+<!--TOC paragraph id="sec4" Goal-->
+<h4 id="sec4" class="paragraph">Goal</h4><!--SEC END --><p>
+The main goal here is to formally verify, in Coq&#XA0;[<a href="#coq_manual">1</a>], the
+correctness of such low-level safety micro-policies with respect to a
+higher-level abstract machine.
+Verification can make use of our previous ideas on refinement and
+verified structured code generators&#XA0;[<a href="#PicoCoq2013">4</a>].
+The proof will be structured as a series of stepwise refinements
+targeting increasingly higher-level abstract machines, where in each
+step the kernel virtualizes the services of the TMU, so that the
+higher-level micro-policies can be stacked on top.
+The topmost abstract machine will thus not only have a protected stack
+and kernel, a mechanism for invoking operations, a structured memory
+model, and a separation between pointers, integers, and instructions,
+but it will also provide all the necessary mechanisms for supporting
+even higher-level micro-policies.
+This vertical proof organization will illustrate one interesting way
+to do micro-policy composition (this subject is further discussed in
+section&#XA0;<a href="#sec%3Acomposition">3</a>).
+Finally, the low-level micro-policies developed here will also inform
+the design of the general metalanguage for defining micro-policies
+discussed in section&#XA0;<a href="#sec%3Ametalanguage">2</a>.</p>
+<!--TOC section id="sec:metalanguage" Metalanguage for Micro-Policies-->
+<h2 id="sec:metalanguage" class="section">2&#XA0;&#XA0;Metalanguage for Micro-Policies</h2><!--SEC END --><p>In order to come up with micro-policies, we need a way to specify the rules that
+the TMU must execute while enforcing them. One of our goals is to
+come up with a declarative language for micro-policies that can be compiled into
+an executable form. The advantage of using a higher-level language is
+that it reduces the need for programming against the TMU&#X2019;s interface
+directly; most of the low-level interaction can then be handled
+automatically. In prior work&#XA0;[<a href="#PicoCoq2013">4</a>], we have experimented
+with such a language for IFC micro-policies . In this project we want to generalize this to a
+language that can describe arbitrary micro-policies, not just IFC ones.</p><p>At a high level, each micro-policy is defined by a table containing
+symbolic rules (e.g., one for each instruction).
+Each rule contains several symbolic expressions drawn from a free
+algebra over a set of function symbols.
+The algebra is sorted (i.e., typed) and the sort signature of each
+function symbol is also part of the policy.
+The variables in expressions refer to the inputs to form symbolic
+expressions and they are also sorted.
+We associate a Coq function of the right type to each function
+constant to obtain an abstract semantics for the rule table.
+We obtain a concrete implementation by devising a compiler that is
+parameterized by a mapping from function symbols to machine code.
+This compiler as well as the machine code associated to function
+symbols can be defined using verified structured code
+generators&#XA0;[<a href="#PicoCoq2013">4</a>, <a href="#Chlipala2013">5</a>].
+The final goal is to prove a generic correctness theorem stating that
+any table is correctly compiled to machine code (i.e., the behavior of
+the produced machine code is the same as specified by the abstract
+semantics specified in Coq) provided that each function symbol is
+correctly implemented.
+Additionally, the correct implementation of the function symbols needs
+to be proved for each individual micro-policy.</p><p>More ambitiously, we would not only define a language for rules, but
+for complete micro-policies.
+As explained in section&#XA0;<a href="#sec%3Aintro"></a> and exemplified in
+section&#XA0;<a href="#sec%3Alow-level">1</a> a micro-policy contains 3 things: tags, rules,
+and operations.
+Ideally we should be able to define all three in a high-level
+metalanguage, and compile it down to machine code.
+For high-level enough micro-policies we shouldn&#X2019;t need to write any
+machine code, everything should be generated from high-level
+descriptions. Moreover, it should be possible to reason about these
+descriptions directly in the logic of Coq, without the need of
+redefining the operations in the logic.
+The challenge is to devise a language that is expressive enough to
+implement such operations yet still simple enough so that writing a
+verified compiler that is fully integrated with Coq&#X2019;s formalism is
+doable (e.g., a simple lambda calculus with datatypes).</p>
+<!--TOC section id="sec:composition" Micro-Policy Composition-->
+<h2 id="sec:composition" class="section">3&#XA0;&#XA0;Micro-Policy Composition</h2><!--SEC END --><p>Since the TMU architecture is very general, we would like to enforce a
+variety of micro-policies simultaneously, and our decision to represent tags as
+word-sized values supports this: We can consider tags that are
+pointers to a <em>tuple</em> of more primitive tags.
+So, naively, we can imagine enforcing several micro-policies at once simply by
+having the rule cache miss handler evaluate each of their rules
+separately and combine the results.
+Unfortunately, in general, micro-policies are not orthogonal. For example, if we
+wish to enforce IFC together with other policies, observing the tags
+of these other policies via operations can reveal sensitive
+information and thus break the noninterference property established
+for the IFC micro-policy in isolation.
+The goal here is to design a composition mechanism that allows such
+interactions to be handled correctly.</p><p>There are several ways one could approach micro-policy composition,
+two of which are explained below.
+The first approach builds on the <em>vertical sequential composition</em>
+idea introduced in section&#XA0;<a href="#sec%3Alow-level">1</a>.
+In this case a linear order is carefully chosen in advance between the
+micro-policies to be composed.
+One starts with the lowest-level micro-policy and the bare hardware
+and proves that the policy is correct with respect to a higher-level
+abstract machine.
+This higher-level abstract machine virtualizes the tagging
+mechanisms in the hardware so that the second micro-policy can be
+implemented on top of this first abstract machine, instead of the bare
+hardware.
+We then prove the correctness of this second micro-policy with respect
+to a second abstract machine, and so on.
+While this technique is likely to work well for one-off proofs, it is
+very much dependent on the set of composed policies and the initially
+chosen order between them.
+If we want to add or remove policies we can only do that at the top of
+the stack; otherwise we have to redo a large number of proofs.
+</p><p>The second approach could be called <em>parallel composition</em> or
+<em>cross-product composition</em>.
+In the absence of operations all micro-policies are orthogonal (they
+are basically just special reference monitors&#XA0;[<a href="#Schneider00">12</a>]), so
+we should be able to devise a way to prove trace properties separately
+for each micro-policy and then compose these proofs to obtain a proof
+that all these trace properties still hold for the composed
+micro-policy.
+The big advantage is that micro-policies proved in this setting can be
+freely composed.
+The big limitation is that many micro-policies do have operations,
+and as discussed above this can make them non-orthogonal.
+As mentioned above, IFC interacts with any other micro-policy having
+operations that expose tags, since this makes tags themselves
+information-flow channels through which secrets can be leaked.
+One idea here is to require each micro-policy to specify what should
+happen with its own tags on all other micro-policies&#X2019; operations.
+Basically, all other micro-policies&#X2019; operations become &#X201C;virtual
+instructions&#X201D; for each micro-policy machine (thus the name
+cross-product composition).
+For instance, the IFC micro-policy could specify that the result of a
+operation that returns a value&#X2019;s tag in another micro-policy is as
+classified as the original value.
+For this kind of cross-product composition there is additional proof
+effort when composing policies, and this effort scales quadratically
+with the number of composed policies.
+Moreover, because micro-policies can influence execution in more
+subtle ways than just stopping it, we are outside the well-studied
+realm of trace properties&#XA0;[<a href="#Schneider00">12</a>], and need to find another
+composable formalism for defining the enforced properties.</p><!--TOC section id="sec7" References-->
+<h2 id="sec7" class="section">References</h2><!--SEC END --><dl class="thebibliography"><dt class="dt-thebibliography">
+<a id="coq_manual">[1]</a></dt><dd class="dd-thebibliography">
+<a href="http://coq.inria.fr/refman/"><em>The </em><em>Coq</em><em> Proof Assistant</em></a>, 2012.
+Version 8.4.</dd><dt class="dt-thebibliography"><a id="AbadiBEL09">[2]</a></dt><dd class="dd-thebibliography">
+M.&#XA0;Abadi, M.&#XA0;Budiu, &#XDA;.&#XA0;Erlingsson, and J.&#XA0;Ligatti.
+<a href="http://users.soe.ucsc.edu/~abadi/Papers/cfi-tissec-revised.pdf">Control-flow
+integrity principles, implementations, and applications</a>.
+<em>TISSEC</em>, 13(1), 2009.</dd><dt class="dt-thebibliography"><a id="ShellcoderHandbook">[3]</a></dt><dd class="dd-thebibliography">
+C.&#XA0;Anley, J.&#XA0;Heasman, F.&#XA0;Lindner, and G.&#XA0;Richarte.
+<a href="http://eu.wiley.com/WileyCDA/WileyTitle/productCd-0764544683.html"><em>The Shellcoder&#X2019;s Handbook, 2nd Edition: Discovering and Exploiting Security
+Holes</em></a>.
+Wiley, 2007.</dd><dt class="dt-thebibliography"><a id="PicoCoq2013">[4]</a></dt><dd class="dd-thebibliography">
+A.&#XA0;Azevedo de Amorim, N.&#XA0;Collins, A.&#XA0;DeHon, D.&#XA0;Demange, C.&#XA0;Hri&#X163;cu,
+D.&#XA0;Pichardie, B.&#XA0;C. Pierce, R.&#XA0;Pollack, and A.&#XA0;Tolmach.
+<a href="http://www.crash-safe.org/node/29">A verified information-flow
+architecture</a>.
+<em>POPL</em>, 2014.
+To appear.</dd><dt class="dt-thebibliography"><a id="Chlipala2013">[5]</a></dt><dd class="dd-thebibliography">
+A.&#XA0;Chlipala.
+<a href="http://adam.chlipala.net/papers/BedrockICFP13/">The Bedrock
+structured programming system: Combining generative metaprogramming and
+Hoare logic in an extensible program verifier</a>.
+<em>ICFP</em>. 2013.</dd><dt class="dt-thebibliography"><a id="DimoulasFFF11">[6]</a></dt><dd class="dd-thebibliography">
+C.&#XA0;Dimoulas, R.&#XA0;B. Findler, C.&#XA0;Flanagan, and M.&#XA0;Felleisen.
+<a href="http://www.ccs.neu.edu/racket/pubs/popl11-dfff.pdf">Correct
+blame for contracts: no more scapegoating</a>.
+In <em>38th ACM SIGPLAN-SIGACT Symposium on Principles of
+Programming Languages (POPL)</em>. 2011.</dd><dt class="dt-thebibliography"><a id="FindlerF02">[7]</a></dt><dd class="dd-thebibliography">
+R.&#XA0;B. Findler and M.&#XA0;Felleisen.
+<a href="http://www.eecs.northwestern.edu/~robby/pubs/papers/ho-contracts-techreport.pdf">Contracts
+for higher-order functions</a>.
+In <em>Proceedings of the 7th International Conference on Functional
+Programming</em>. 2002.</dd><dt class="dt-thebibliography"><a id="Exceptional">[8]</a></dt><dd class="dd-thebibliography">
+C.&#XA0;Hri&#X163;cu, M.&#XA0;Greenberg, B.&#XA0;Karel, B.&#XA0;C. Pierce, and G.&#XA0;Morrisett.
+<a href="http://www.crash-safe.org/node/23">All your IFCException are
+belong to us</a>.
+<em>IEEE S&amp;P</em>. 2013.</dd><dt class="dt-thebibliography"><a id="TestingNI">[9]</a></dt><dd class="dd-thebibliography">
+C.&#XA0;Hri&#X163;cu, J.&#XA0;Hughes, B.&#XA0;C. Pierce, A.&#XA0;Spector-Zabusky, D.&#XA0;Vytiniotis,
+A.&#XA0;Azevedo de Amorim, and L.&#XA0;Lampropoulos.
+<a href="http://www.crash-safe.org/node/24">Testing noninterference,
+quickly</a>.
+<em>ICFP</em>, 2013.</dd><dt class="dt-thebibliography"><a id="Morris::73">[10]</a></dt><dd class="dd-thebibliography">
+J.&#XA0;H. Morris, Jr.
+<a href="http://www.erights.org/history/morris73.pdf">Protection in
+programming languages</a>.
+<em>CACM</em>, 16(1):15&#X2013;21, 1973.</dd><dt class="dt-thebibliography"><a id="Savage1997">[11]</a></dt><dd class="dd-thebibliography">
+S.&#XA0;Savage, M.&#XA0;Burrows, G.&#XA0;Nelson, , P.&#XA0;Sobalvarro, and T.&#XA0;Anderson.
+<a href="http://www.cs.duke.edu/courses/cps210/spring06/papers/eraser.pdf">Eraser:
+A dynamic race detector for multi-threaded programs</a>.
+<em>ACM Transactions on Computer Systems</em>, 15(4), 1997.</dd><dt class="dt-thebibliography"><a id="Schneider00">[12]</a></dt><dd class="dd-thebibliography">
+F.&#XA0;B. Schneider.
+<a href="http://www.cs.cornell.edu/fbs/publications/EnfSecPols.pdf">Enforceable
+security policies</a>.
+<em>ACM Transactions of Information Systems Security</em>, 3(1):30&#X2013;50,
+2000.</dd><dt class="dt-thebibliography"><a id="SumiiPierce2004">[13]</a></dt><dd class="dd-thebibliography">
+E.&#XA0;Sumii and B.&#XA0;C. Pierce.
+<a href="http://www.cis.upenn.edu/~bcpierce/papers/infohide3.pdf">A
+bisimulation for dynamic sealing</a>.
+2004.
+Full version in <em>Theoretical Computer Science</em> 375 (2007),
+169&#X2013;192.</dd><dt class="dt-thebibliography"><a id="Szekeres2013">[14]</a></dt><dd class="dd-thebibliography">
+L.&#XA0;Szekeres, M.&#XA0;Payer, T.&#XA0;Wei, and D.&#XA0;Song.
+<a href="http://lenx.100871.net/papers/War-oakland-CR.pdf">SoK:
+Eternal war in memory</a>.
+<em>IEEE S&amp;P</em>. 2013.</dd></dl><!--BEGIN NOTES document-->
+<hr class="footnoterule"><dl class="thefootnotes"><dt class="dt-thefootnotes">
+<a id="note1" href="#text1">1</a></dt><dd class="dd-thefootnotes"><div class="footnotetext">This <em>micro-policies</em> project is a followup
+of CRASH/SAFE (<a href="http://www.crash-safe.org/"><span style="font-family:monospace">http://www.crash-safe.org/</span></a>) and 
+a collaboration&#XA0;[<a href="#PicoCoq2013">4</a>] with
+University of Pennsylvania, Portland State University, Harvard
+University, and the Celtique joint team in Rennes (INRIA, CNRS,
+University of Rennes 1, and ENS).</div>
+</dd></dl>
+<!--END NOTES-->
+<!--CUT END -->
+<!--HTMLFOOT-->
+<!--ENDHTML-->
+<!--FOOTER-->
+<hr style="height:2"><blockquote class="quote"><em>This document was translated from L<sup>A</sup>T<sub>E</sub>X by
+</em><a href="http://hevea.inria.fr/index.html"><em>H</em><em><span style="font-size:small"><sup>E</sup></span></em><em>V</em><em><span style="font-size:small"><sup>E</sup></span></em><em>A</em></a><em>.</em></blockquote></body>
+</html>
