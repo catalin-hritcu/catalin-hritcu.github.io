@@ -82,7 +82,7 @@ let rec quicksort f l =
 ~Fragment {.console}
 ``` html
 Subtyping check failed; 
-  expected type lo:list a{%[length lo] << %[length l]}; 
+  expected type lo:list a{ %[length lo] << %[length l] }; 
   got type (list a) (qsc.fst(99,19-99,21))
 ```
 ~
