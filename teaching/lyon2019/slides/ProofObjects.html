@@ -1,0 +1,796 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link href="common/css/sf.css" rel="stylesheet" type="text/css"/>
+<title>ProofObjects: The Curry-Howard Correspondence</title>
+<link href="common/jquery-ui/jquery-ui.css" rel="stylesheet">
+<script src="common/jquery-ui/external/jquery/jquery.js"></script>
+<script src="common/jquery-ui/jquery-ui.js"></script>
+<script src="common/toggleproofs.js"></script>
+<link href="common/css/lf.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="common/slides.js"></script>
+<link href="common/css/slides.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+<div id='logoinheader'><a href='https://softwarefoundations.cis.upenn.edu'>
+<img src='common/media/image/sf_logo_sm.png' alt='Software Foundations Logo'></a></div>
+<div class='booktitleinheader'><a href='index.html'>Volume 1: Logical Foundations</a></div>
+<ul id='menu'>
+   <li class='section_name'><a href='toc.html'>Table of Contents</a></li>
+   <li class='section_name'><a href='coqindex.html'>Index</a></li>
+   <li class='section_name'><a href='deps.html'>Roadmap</a></li>
+</ul>
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">ProofObjects<span class="subtitle">The Curry-Howard Correspondence</span></h1>
+
+
+
+<div class="doc">
+<div class="quote">"<i>Algorithms are the computational content of proofs</i>."  &mdash;Robert Harper</div> 
+</div>
+
+<div class="doc">
+The type of <span class="inlinecode"><span class="id" title="variable">ev_SS</span></span> says that it is a <i>function</i>
+    (better: a data <i>constructor</i>) taking two arguments (one number
+    <span class="inlinecode"><span class="id" title="variable">n</span></span> plus evidence for <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode"><span class="id" title="variable">n</span></span>) and returning evidence that <span class="inlinecode"><span class="id" title="variable">S</span></span> <span class="inlinecode">(<span class="id" title="variable">S</span></span>
+    <span class="inlinecode"><span class="id" title="variable">n</span>)</span> is even. 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Check</span> <span class="id" title="variable">ev_SS</span>.<br/>
+<span class="comment">(*&nbsp;===&gt;&nbsp;ev_SS&nbsp;:&nbsp;forall&nbsp;n,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;even&nbsp;n&nbsp;<span class="nowrap"><span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>-</span></span>&gt;</span></span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;even&nbsp;(S&nbsp;(S&nbsp;n))&nbsp;*)</span><br/>
+</div>
+
+<div class="doc">
+<a name="lab299"></a><h3 class="section"> </h3>
+ Now let's look again at a previous proof involving <span class="inlinecode"><span class="id" title="variable">even</span></span>. 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">ev_4</span> : <span class="id" title="variable">even</span> 4.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">ev_SS</span>. <span class="id" title="tactic">apply</span> <span class="id" title="variable">ev_SS</span>. <span class="id" title="tactic">apply</span> <span class="id" title="variable">ev_0</span>. <span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<div class="doc">
+As with ordinary data values and functions, we can use the <span class="inlinecode"><span class="id" title="keyword">Print</span></span>
+    command to see the <i>proof object</i> that results from this proof
+    script. 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Print</span> <span class="id" title="variable">ev_4</span>.<br/>
+<span class="comment">(*&nbsp;===&gt;&nbsp;ev_4&nbsp;=&nbsp;ev_SS&nbsp;2&nbsp;(ev_SS&nbsp;0&nbsp;ev_0)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;even&nbsp;4&nbsp;&nbsp;*)</span><br/>
+</div>
+
+<div class="doc">
+<a name="lab300"></a><h3 class="section"> </h3>
+ Indeed, we can also write down this proof object <i>directly</i>,
+    without the need for a separate proof script: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Check</span> (<span class="id" title="variable">ev_SS</span> 2 (<span class="id" title="variable">ev_SS</span> 0 <span class="id" title="variable">ev_0</span>)).<br/>
+<span class="comment">(*&nbsp;===&gt;&nbsp;even&nbsp;4&nbsp;*)</span><br/><hr class='doublespaceincode'/>
+</div>
+
+<div class="doc">
+<a name="lab301"></a><h1 class="section">Proof Scripts</h1>
+
+<div class="paragraph"> </div>
+
+ When we build a proof using tactics, Coq internally constructs a
+    proof object.  We can see how this happens using <span class="inlinecode"><span class="id" title="keyword">Show</span></span> <span class="inlinecode"><span class="id" title="keyword">Proof</span></span>: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">ev_4''</span> : <span class="id" title="variable">even</span> 4.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Show</span> <span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">ev_SS</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Show</span> <span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">ev_SS</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Show</span> <span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">ev_0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Show</span> <span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab302"></a><h3 class="section"> </h3>
+ Tactic proofs are useful and convenient, but they are not
+    essential: in principle, we can always construct the required
+    evidence by hand, as shown above. Then we can use <span class="inlinecode"><span class="id" title="keyword">Definition</span></span>
+    (rather than <span class="inlinecode"><span class="id" title="keyword">Theorem</span></span>) to give a global name directly to this
+    evidence. 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Definition</span> <span class="id" title="variable">ev_4'''</span> : <span class="id" title="variable">even</span> 4 :=<br/>
+&nbsp;&nbsp;<span class="id" title="variable">ev_SS</span> 2 (<span class="id" title="variable">ev_SS</span> 0 <span class="id" title="variable">ev_0</span>).<br/><hr class='doublespaceincode'/>
+</div>
+
+<div class="doc">
+<a name="lab304"></a><h1 class="section">Quantifiers, Implications, Functions</h1>
+
+<div class="paragraph"> </div>
+
+ In Coq's computational universe (where data structures and
+    programs live), there are two sorts of values with arrows in their
+    types: <i>constructors</i> introduced by <span class="inlinecode"><span class="id" title="keyword">Inductive</span></span>ly defined data
+    types, and <i>functions</i>.
+
+<div class="paragraph"> </div>
+
+    Similarly, in Coq's logical universe (where we carry out proofs),
+    there are two ways of giving evidence for an implication:
+    constructors introduced by <span class="inlinecode"><span class="id" title="keyword">Inductive</span></span>ly defined propositions,
+    and... functions! 
+<div class="paragraph"> </div>
+
+<a name="lab305"></a><h3 class="section"> </h3>
+ For example, consider this statement: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">ev_plus4</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">n</span>, <span class="id" title="variable">even</span> <span class="id" title="variable">n</span> → <span class="id" title="variable">even</span> (4 + <span class="id" title="variable">n</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">n</span> <span class="id" title="variable">H</span>. <span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">ev_SS</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">ev_SS</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">H</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab306"></a><h3 class="section"> </h3>
+ What is the proof object corresponding to <span class="inlinecode"><span class="id" title="variable">ev_plus4</span></span>?
+
+<div class="paragraph"> </div>
+
+    We're looking for an expression whose <i>type</i> is <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">n</span>,</span> <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode"><span class="id" title="variable">n</span></span> <span class="inlinecode">→</span>
+    <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode">(4</span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" title="variable">n</span>)</span> &mdash; that is, a <i>function</i> that takes two arguments (one
+    number and a piece of evidence) and returns a piece of evidence!
+
+<div class="paragraph"> </div>
+
+    Here it is: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Definition</span> <span class="id" title="variable">ev_plus4'</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">n</span>, <span class="id" title="variable">even</span> <span class="id" title="variable">n</span> → <span class="id" title="variable">even</span> (4 + <span class="id" title="variable">n</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">fun</span> (<span class="id" title="variable">n</span> : <span class="id" title="variable">nat</span>) ⇒ <span class="id" title="keyword">fun</span> (<span class="id" title="variable">H</span> : <span class="id" title="variable">even</span> <span class="id" title="variable">n</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">ev_SS</span> (<span class="id" title="variable">S</span> (<span class="id" title="variable">S</span> <span class="id" title="variable">n</span>)) (<span class="id" title="variable">ev_SS</span> <span class="id" title="variable">n</span> <span class="id" title="variable">H</span>).<br/>
+</div>
+
+<div class="doc">
+Or: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Definition</span> <span class="id" title="variable">ev_plus4''</span> (<span class="id" title="variable">n</span> : <span class="id" title="variable">nat</span>) (<span class="id" title="variable">H</span> : <span class="id" title="variable">even</span> <span class="id" title="variable">n</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="variable">even</span> (4 + <span class="id" title="variable">n</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="variable">ev_SS</span> (<span class="id" title="variable">S</span> (<span class="id" title="variable">S</span> <span class="id" title="variable">n</span>)) (<span class="id" title="variable">ev_SS</span> <span class="id" title="variable">n</span> <span class="id" title="variable">H</span>).<br/><hr class='doublespaceincode'/>
+<span class="id" title="keyword">Check</span> <span class="id" title="variable">ev_plus4''</span>.<br/>
+<span class="comment">(*&nbsp;===&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;forall&nbsp;n&nbsp;:&nbsp;nat,&nbsp;even&nbsp;n&nbsp;<span class="nowrap"><span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>-</span></span>&gt;</span></span>&nbsp;even&nbsp;(4&nbsp;+&nbsp;n)&nbsp;*)</span><br/>
+</div>
+
+<div class="doc">
+<a name="lab307"></a><h3 class="section"> </h3>
+ When we view the proposition being proved by <span class="inlinecode"><span class="id" title="variable">ev_plus4</span></span> as a
+    function type, one interesting point becomes apparent: The second
+    argument's type, <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode"><span class="id" title="variable">n</span></span>, mentions the <i>value</i> of the first
+    argument, <span class="inlinecode"><span class="id" title="variable">n</span></span>.
+
+<div class="paragraph"> </div>
+
+    While such <i>dependent types</i> are not found in conventional
+    programming languages, they can be useful in programming too, as
+    the recent flurry of activity in the functional programming
+    community demonstrates. 
+<div class="paragraph"> </div>
+
+<a name="lab308"></a><h3 class="section"> </h3>
+ Notice that both implication (<span class="inlinecode">→</span>) and quantification (<span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span>)
+    correspond to functions on evidence.  In fact, they are really the
+    same thing: <span class="inlinecode">→</span> is just a shorthand for a degenerate use of
+    <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> where there is no dependency, i.e., no need to give a
+    name to the type on the left-hand side of the arrow:
+
+<div class="paragraph"> </div>
+
+<div class="code code-tight">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style='font-size:120%;'>&forall;</span>(<span class="id" title="variable">x</span>:<span class="id" title="variable">nat</span>),&nbsp;<span class="id" title="variable">nat</span>&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;&nbsp;<span style='font-size:120%;'>&forall;</span>(<span class="id" title="variable">_</span>:<span class="id" title="variable">nat</span>),&nbsp;<span class="id" title="variable">nat</span>&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;&nbsp;<span class="id" title="variable">nat</span>&nbsp;→&nbsp;<span class="id" title="variable">nat</span>
+<div class="paragraph"> </div>
+
+</div>
+
+</div>
+<div class="code code-tight">
+
+</div><div class="quiz"><div>
+</div>
+
+<div class="doc">
+Recall the definition of <span class="inlinecode"><span class="id" title="variable">even</span></span>:
+
+<div class="paragraph"> </div>
+
+<div class="code code-tight">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Inductive</span>&nbsp;<span class="id" title="variable">even</span>&nbsp;:&nbsp;<span class="id" title="variable">nat</span>&nbsp;→&nbsp;<span class="id" title="keyword">Prop</span>&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;<span class="id" title="variable">ev_0</span>&nbsp;:&nbsp;<span class="id" title="variable">even</span>&nbsp;0<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;<span class="id" title="variable">ev_SS</span>&nbsp;:&nbsp;<span style='font-size:120%;'>&forall;</span><span class="id" title="variable">n</span>,&nbsp;<span class="id" title="variable">even</span>&nbsp;<span class="id" title="variable">n</span>&nbsp;→&nbsp;<span class="id" title="variable">even</span>&nbsp;(<span class="id" title="variable">S</span>&nbsp;(<span class="id" title="variable">S</span>&nbsp;<span class="id" title="variable">n</span>)).
+<div class="paragraph"> </div>
+
+</div>
+    What is the type of this expression?
+
+<div class="paragraph"> </div>
+
+<div class="code code-tight">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span>&nbsp;(<span class="id" title="variable">n</span>&nbsp;:&nbsp;<span class="id" title="variable">nat</span>)&nbsp;⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span>&nbsp;(<span class="id" title="variable">H</span>&nbsp;:&nbsp;<span class="id" title="variable">even</span>&nbsp;<span class="id" title="variable">n</span>)&nbsp;⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">ev_SS</span>&nbsp;(2&nbsp;+&nbsp;<span class="id" title="variable">n</span>)&nbsp;(<span class="id" title="variable">ev_SS</span>&nbsp;<span class="id" title="variable">n</span>&nbsp;<span class="id" title="variable">H</span>)
+<div class="paragraph"> </div>
+
+</div>
+
+<div class="paragraph"> </div>
+
+  (1) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">n</span>,</span> <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode"><span class="id" title="variable">n</span></span>
+
+<div class="paragraph"> </div>
+
+  (2) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">n</span>,</span> <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode">(2</span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" title="variable">n</span>)</span>
+
+<div class="paragraph"> </div>
+
+  (3) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">n</span>,</span> <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode"><span class="id" title="variable">n</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode"><span class="id" title="variable">n</span></span>
+
+<div class="paragraph"> </div>
+
+  (4) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">n</span>,</span> <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode"><span class="id" title="variable">n</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode">(2</span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" title="variable">n</span>)</span>
+
+<div class="paragraph"> </div>
+
+  (5) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">n</span>,</span> <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode"><span class="id" title="variable">n</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">even</span></span> <span class="inlinecode">(4</span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" title="variable">n</span>)</span>
+
+<div class="paragraph"> </div>
+
+  (6) Not typeable
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code code-tight">
+</div >
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab309"></a><h1 class="section">Programming with Tactics</h1>
+
+<div class="paragraph"> </div>
+
+ If we can build proofs by giving explicit terms rather than
+    executing tactic scripts, you may be wondering whether we can
+    build <i>programs</i> using <i>tactics</i> rather than explicit terms.
+    Naturally, the answer is yes! 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Definition</span> <span class="id" title="variable">add1</span> : <span class="id" title="variable">nat</span> → <span class="id" title="variable">nat</span>.<br/>
+<span class="id" title="tactic">intro</span> <span class="id" title="variable">n</span>.<br/>
+<span class="id" title="keyword">Show</span> <span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">apply</span> <span class="id" title="variable">S</span>.<br/>
+<span class="id" title="keyword">Show</span> <span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">apply</span> <span class="id" title="variable">n</span>. <span class="id" title="keyword">Defined</span>.<br/><hr class='doublespaceincode'/>
+<span class="id" title="keyword">Print</span> <span class="id" title="variable">add1</span>.<br/>
+<span class="comment">(*&nbsp;==&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;add1&nbsp;=&nbsp;fun&nbsp;n&nbsp;:&nbsp;nat&nbsp;=&gt;&nbsp;S&nbsp;n<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;nat&nbsp;<span class="nowrap"><span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>-</span></span>&gt;</span></span>&nbsp;nat<br/>
+*)</span><br/><hr class='doublespaceincode'/>
+<span class="id" title="variable">Compute</span> <span class="id" title="variable">add1</span> 2.<br/>
+<span class="comment">(*&nbsp;==&gt;&nbsp;3&nbsp;:&nbsp;nat&nbsp;*)</span><br/>
+</div>
+
+<div class="doc">
+<a name="lab310"></a><h3 class="section"> </h3>
+ Notice that we terminate the <span class="inlinecode"><span class="id" title="keyword">Definition</span></span> with a <span class="inlinecode">.</span> rather than
+    with <span class="inlinecode">:=</span> followed by a term.  This tells Coq to enter <i>proof
+    scripting mode</i> to build an object of type <span class="inlinecode"><span class="id" title="variable">nat</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">nat</span></span>.  Also, we
+    terminate the proof with <span class="inlinecode"><span class="id" title="keyword">Defined</span></span> rather than <span class="inlinecode"><span class="id" title="keyword">Qed</span></span>; this makes
+    the definition <i>transparent</i> so that it can be used in computation
+    like a normally-defined function.  (<span class="inlinecode"><span class="id" title="keyword">Qed</span></span>-defined objects are
+    opaque during computation.)
+
+<div class="paragraph"> </div>
+
+    This feature is mainly useful for writing functions with dependent
+    types, which we won't explore much further in this book.  But it
+    does illustrate the uniformity and orthogonality of the basic
+    ideas in Coq. 
+</div>
+
+<div class="doc">
+<a name="lab311"></a><h1 class="section">Logical Connectives as Inductive Types</h1>
+
+<div class="paragraph"> </div>
+
+ Inductive definitions are powerful enough to express most of the
+    connectives we have seen so far.  Indeed, only universal
+    quantification (with implication as a special case) is built into
+    Coq; all the others are defined inductively.  We'll see these
+    definitions in this section. 
+</div>
+
+<div class="doc">
+<a name="lab312"></a><h2 class="section">Conjunction</h2>
+
+<div class="paragraph"> </div>
+
+ To prove that <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> holds, we must present evidence for both
+    <span class="inlinecode"><span class="id" title="variable">P</span></span> and <span class="inlinecode"><span class="id" title="variable">Q</span></span>.  Thus, it makes sense to define a proof object for <span class="inlinecode"><span class="id" title="variable">P</span></span>
+    <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> as consisting of a pair of two proofs: one for <span class="inlinecode"><span class="id" title="variable">P</span></span> and
+    another one for <span class="inlinecode"><span class="id" title="variable">Q</span></span>. This leads to the following definition. 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Inductive</span> <span class="id" title="variable">and</span> (<span class="id" title="variable">P</span> <span class="id" title="variable">Q</span> : <span class="id" title="keyword">Prop</span>) : <span class="id" title="keyword">Prop</span> :=<br/>
+| <span class="id" title="variable">conj</span> : <span class="id" title="variable">P</span> → <span class="id" title="variable">Q</span> → <span class="id" title="variable">and</span> <span class="id" title="variable">P</span> <span class="id" title="variable">Q</span>.<br/>
+</div>
+
+<div class="doc">
+Notice the similarity with the definition of the <span class="inlinecode"><span class="id" title="variable">prod</span></span> type,
+    given in chapter <a href="Poly.html"><span class="inlineref">Poly</span></a>; the only difference is that <span class="inlinecode"><span class="id" title="variable">prod</span></span> takes
+    <span class="inlinecode"><span class="id" title="keyword">Type</span></span> arguments, whereas <span class="inlinecode"><span class="id" title="variable">and</span></span> takes <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> arguments. 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Print</span> <span class="id" title="variable">prod</span>.<br/>
+<span class="comment">(*&nbsp;===&gt;<br/>
+&nbsp;&nbsp;&nbsp;Inductive&nbsp;prod&nbsp;(X&nbsp;Y&nbsp;:&nbsp;Type)&nbsp;:&nbsp;Type&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;|&nbsp;pair&nbsp;:&nbsp;X&nbsp;<span class="nowrap"><span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>-</span></span>&gt;</span></span>&nbsp;Y&nbsp;<span class="nowrap"><span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>-</span></span>&gt;</span></span>&nbsp;X&nbsp;*&nbsp;Y.&nbsp;*)</span><br/>
+</div>
+
+<div class="doc">
+<a name="lab313"></a><h3 class="section"> </h3>
+ This similarity should clarify why <span class="inlinecode"><span class="id" title="tactic">destruct</span></span> and <span class="inlinecode"><span class="id" title="tactic">intros</span></span>
+    patterns can be used on a conjunctive hypothesis.  Case analysis
+    allows us to consider all possible ways in which <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> was
+    proved &mdash; here just one (the <span class="inlinecode"><span class="id" title="variable">conj</span></span> constructor).
+
+<div class="paragraph"> </div>
+
+    Similarly, the <span class="inlinecode"><span class="id" title="tactic">split</span></span> tactic actually works for any inductively
+    defined proposition with exactly one constructor.  In particular,
+    it works for <span class="inlinecode"><span class="id" title="variable">and</span></span>: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Lemma</span> <span class="id" title="variable">and_comm</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">P</span> <span class="id" title="variable">Q</span> : <span class="id" title="keyword">Prop</span>, <span class="id" title="variable">P</span> ∧ <span class="id" title="variable">Q</span> ↔ <span class="id" title="variable">Q</span> ∧ <span class="id" title="variable">P</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">P</span> <span class="id" title="variable">Q</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">intros</span> [<span class="id" title="variable">HP</span> <span class="id" title="variable">HQ</span>]. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="variable">HQ</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="variable">HP</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">intros</span> [<span class="id" title="variable">HQ</span> <span class="id" title="variable">HP</span>]. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="variable">HP</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="variable">HQ</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab314"></a><h3 class="section"> </h3>
+ This shows why the inductive definition of <span class="inlinecode"><span class="id" title="variable">and</span></span> can be
+    manipulated by tactics as we've been doing.  We can also use it to
+    build proofs directly, using pattern-matching.  For instance: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Definition</span> <span class="id" title="variable">and_comm'_aux</span> <span class="id" title="variable">P</span> <span class="id" title="variable">Q</span> (<span class="id" title="variable">H</span> : <span class="id" title="variable">P</span> ∧ <span class="id" title="variable">Q</span>) : <span class="id" title="variable">Q</span> ∧ <span class="id" title="variable">P</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="variable">H</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="variable">conj</span> <span class="id" title="variable">HP</span> <span class="id" title="variable">HQ</span> ⇒ <span class="id" title="variable">conj</span> <span class="id" title="variable">HQ</span> <span class="id" title="variable">HP</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/><hr class='doublespaceincode'/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="variable">and_comm'</span> <span class="id" title="variable">P</span> <span class="id" title="variable">Q</span> : <span class="id" title="variable">P</span> ∧ <span class="id" title="variable">Q</span> ↔ <span class="id" title="variable">Q</span> ∧ <span class="id" title="variable">P</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="variable">conj</span> (<span class="id" title="variable">and_comm'_aux</span> <span class="id" title="variable">P</span> <span class="id" title="variable">Q</span>) (<span class="id" title="variable">and_comm'_aux</span> <span class="id" title="variable">Q</span> <span class="id" title="variable">P</span>).<br/>
+</div><div class="quiz"><div>
+</div>
+
+<div class="doc">
+What is the type of this expression?
+
+<div class="paragraph"> </div>
+
+<div class="code code-tight">
+&nbsp;&nbsp;<span class="id" title="keyword">fun</span>&nbsp;<span class="id" title="variable">P</span>&nbsp;<span class="id" title="variable">Q</span>&nbsp;<span class="id" title="variable">R</span>&nbsp;(<span class="id" title="variable">H<sub>1</sub></span>:&nbsp;<span class="id" title="variable">and</span>&nbsp;<span class="id" title="variable">P</span>&nbsp;<span class="id" title="variable">Q</span>)&nbsp;(<span class="id" title="variable">H<sub>2</sub></span>:&nbsp;<span class="id" title="variable">and</span>&nbsp;<span class="id" title="variable">Q</span>&nbsp;<span class="id" title="variable">R</span>)&nbsp;⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span>&nbsp;(<span class="id" title="variable">H<sub>1</sub></span>,<span class="id" title="variable">H<sub>2</sub></span>)&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;(<span class="id" title="variable">conj</span>&nbsp;<span class="id" title="variable">_</span>&nbsp;<span class="id" title="variable">_</span>&nbsp;<span class="id" title="variable">HP</span>&nbsp;<span class="id" title="variable">_</span>,&nbsp;<span class="id" title="variable">conj</span>&nbsp;<span class="id" title="variable">_</span>&nbsp;<span class="id" title="variable">_</span>&nbsp;<span class="id" title="variable">_</span>&nbsp;<span class="id" title="variable">HR</span>)&nbsp;⇒&nbsp;<span class="id" title="variable">conj</span>&nbsp;<span class="id" title="variable">P</span>&nbsp;<span class="id" title="variable">R</span>&nbsp;<span class="id" title="variable">HP</span>&nbsp;<span class="id" title="variable">HR</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.
+<div class="paragraph"> </div>
+
+</div>
+
+<div class="paragraph"> </div>
+
+  (1) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode"><span class="id" title="variable">R</span>,</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="variable">R</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="variable">R</span></span>
+
+<div class="paragraph"> </div>
+
+  (2) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode"><span class="id" title="variable">R</span>,</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">R</span></span> <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="variable">R</span></span>
+
+<div class="paragraph"> </div>
+
+  (3) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode"><span class="id" title="variable">R</span>,</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="variable">R</span></span>
+
+<div class="paragraph"> </div>
+
+  (4) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode"><span class="id" title="variable">R</span>,</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">R</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">R</span></span>
+
+<div class="paragraph"> </div>
+
+  (5) Not typeable
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code code-tight">
+</div >
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab315"></a><h2 class="section">Disjunction</h2>
+
+<div class="paragraph"> </div>
+
+ The inductive definition of disjunction uses two constructors, one
+    for each side of the disjunct: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Inductive</span> <span class="id" title="variable">or</span> (<span class="id" title="variable">P</span> <span class="id" title="variable">Q</span> : <span class="id" title="keyword">Prop</span>) : <span class="id" title="keyword">Prop</span> :=<br/>
+| <span class="id" title="variable">or_introl</span> : <span class="id" title="variable">P</span> → <span class="id" title="variable">or</span> <span class="id" title="variable">P</span> <span class="id" title="variable">Q</span><br/>
+| <span class="id" title="variable">or_intror</span> : <span class="id" title="variable">Q</span> → <span class="id" title="variable">or</span> <span class="id" title="variable">P</span> <span class="id" title="variable">Q</span>.<br/>
+</div>
+
+<div class="doc">
+This declaration explains the behavior of the <span class="inlinecode"><span class="id" title="tactic">destruct</span></span> tactic on
+    a disjunctive hypothesis, since the generated subgoals match the
+    shape of the <span class="inlinecode"><span class="id" title="variable">or_introl</span></span> and <span class="inlinecode"><span class="id" title="variable">or_intror</span></span> constructors.
+
+<div class="paragraph"> </div>
+
+    Once again, we can also directly write proof objects for theorems
+    involving <span class="inlinecode"><span class="id" title="variable">or</span></span>, without resorting to tactics. 
+</div>
+<div class="code code-tight">
+
+</div><div class="quiz"><div>
+</div>
+
+<div class="doc">
+What is the type of this expression?
+
+<div class="paragraph"> </div>
+
+<div class="code code-tight">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span>&nbsp;<span class="id" title="variable">P</span>&nbsp;<span class="id" title="variable">Q</span>&nbsp;<span class="id" title="variable">H</span>&nbsp;⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span>&nbsp;<span class="id" title="variable">H</span>&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;<span class="id" title="variable">or_introl</span>&nbsp;<span class="id" title="variable">HP</span>&nbsp;⇒&nbsp;<span class="id" title="variable">or_intror</span>&nbsp;<span class="id" title="variable">Q</span>&nbsp;<span class="id" title="variable">P</span>&nbsp;<span class="id" title="variable">HP</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;<span class="id" title="variable">or_intror</span>&nbsp;<span class="id" title="variable">HQ</span>&nbsp;⇒&nbsp;<span class="id" title="variable">or_introl</span>&nbsp;<span class="id" title="variable">Q</span>&nbsp;<span class="id" title="variable">P</span>&nbsp;<span class="id" title="variable">HQ</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.
+<div class="paragraph"> </div>
+
+</div>
+
+<div class="paragraph"> </div>
+
+  (1) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode"><span class="id" title="variable">H</span>,</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">H</span></span>
+
+<div class="paragraph"> </div>
+
+  (2) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode"><span class="id" title="variable">Q</span>,</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span>
+
+<div class="paragraph"> </div>
+
+  (3) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode"><span class="id" title="variable">H</span>,</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">H</span></span>
+
+<div class="paragraph"> </div>
+
+  (4) <span class="inlinecode"><span style='font-size:120%;'>&forall;</span></span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode"><span class="id" title="variable">Q</span>,</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">P</span></span>
+
+<div class="paragraph"> </div>
+
+  (5) Not typeable
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code code-tight">
+</div >
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab316"></a><h2 class="section">Existential Quantification</h2>
+
+<div class="paragraph"> </div>
+
+ To give evidence for an existential quantifier, we package a
+    witness <span class="inlinecode"><span class="id" title="variable">x</span></span> together with a proof that <span class="inlinecode"><span class="id" title="variable">x</span></span> satisfies the property
+    <span class="inlinecode"><span class="id" title="variable">P</span></span>: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Inductive</span> <span class="id" title="variable">ex</span> {<span class="id" title="variable">A</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="variable">P</span> : <span class="id" title="variable">A</span> → <span class="id" title="keyword">Prop</span>) : <span class="id" title="keyword">Prop</span> :=<br/>
+| <span class="id" title="variable">ex_intro</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">x</span> : <span class="id" title="variable">A</span>, <span class="id" title="variable">P</span> <span class="id" title="variable">x</span> → <span class="id" title="variable">ex</span> <span class="id" title="variable">P</span>.<br/>
+</div>
+
+<div class="doc">
+This may benefit from a little unpacking.  The core definition is
+    for a type former <span class="inlinecode"><span class="id" title="variable">ex</span></span> that can be used to build propositions of
+    the form <span class="inlinecode"><span class="id" title="variable">ex</span></span> <span class="inlinecode"><span class="id" title="variable">P</span></span>, where <span class="inlinecode"><span class="id" title="variable">P</span></span> itself is a <i>function</i> from witness
+    values in the type <span class="inlinecode"><span class="id" title="variable">A</span></span> to propositions.  The <span class="inlinecode"><span class="id" title="variable">ex_intro</span></span>
+    constructor then offers a way of constructing evidence for <span class="inlinecode"><span class="id" title="variable">ex</span></span> <span class="inlinecode"><span class="id" title="variable">P</span></span>,
+    given a witness <span class="inlinecode"><span class="id" title="variable">x</span></span> and a proof of <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode"><span class="id" title="variable">x</span></span>. 
+<div class="paragraph"> </div>
+
+<a name="lab317"></a><h3 class="section"> </h3>
+ The more familiar form <span class="inlinecode"><span style='font-size:120%;'>&exist;</span></span> <span class="inlinecode"><span class="id" title="variable">x</span>,</span> <span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode"><span class="id" title="variable">x</span></span> desugars to an expression
+    involving <span class="inlinecode"><span class="id" title="variable">ex</span></span>: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Check</span> <span class="id" title="variable">ex</span> (<span class="id" title="keyword">fun</span> <span class="id" title="variable">n</span> ⇒ <span class="id" title="variable">even</span> <span class="id" title="variable">n</span>).<br/>
+<span class="comment">(*&nbsp;===&gt;&nbsp;exists&nbsp;n&nbsp;:&nbsp;nat,&nbsp;even&nbsp;n<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;Prop&nbsp;*)</span><br/>
+</div>
+
+<div class="doc">
+Here's how to define an explicit proof object involving <span class="inlinecode"><span class="id" title="variable">ex</span></span>: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Definition</span> <span class="id" title="variable">some_nat_is_even</span> : <span style='font-size:120%;'>&exist;</span><span class="id" title="variable">n</span>, <span class="id" title="variable">even</span> <span class="id" title="variable">n</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="variable">ex_intro</span> <span class="id" title="variable">even</span> 4 (<span class="id" title="variable">ev_SS</span> 2 (<span class="id" title="variable">ev_SS</span> 0 <span class="id" title="variable">ev_0</span>)).<br/>
+</div>
+
+<div class="doc">
+<a name="lab318"></a><h2 class="section"><span class="inlinecode"><span class="id" title="variable">True</span></span> and <span class="inlinecode"><span class="id" title="variable">False</span></span></h2>
+
+<div class="paragraph"> </div>
+
+ The inductive definition of the <span class="inlinecode"><span class="id" title="variable">True</span></span> proposition is simple: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Inductive</span> <span class="id" title="variable">True</span> : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;| <span class="id" title="variable">I</span> : <span class="id" title="variable">True</span>.<br/>
+</div>
+
+<div class="doc">
+It has one constructor (so every proof of <span class="inlinecode"><span class="id" title="variable">True</span></span> is the same, so
+    being given a proof of <span class="inlinecode"><span class="id" title="variable">True</span></span> is not informative.) 
+<div class="paragraph"> </div>
+
+ <span class="inlinecode"><span class="id" title="variable">False</span></span> is equally simple &mdash; indeed, so simple it may look
+    syntactically wrong at first glance! 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Inductive</span> <span class="id" title="variable">False</span> : <span class="id" title="keyword">Prop</span> := .<br/>
+</div>
+
+<div class="doc">
+That is, <span class="inlinecode"><span class="id" title="variable">False</span></span> is an inductive type with <i>no</i> constructors &mdash;
+    i.e., no way to build evidence for it. 
+</div>
+
+<div class="doc">
+<a name="lab319"></a><h1 class="section">Equality</h1>
+
+<div class="paragraph"> </div>
+
+ Even Coq's equality relation is not built in.  It has the
+    following inductive definition.  (Actually, the definition in the
+    standard library is a slight variant of this, which gives an
+    induction principle that is slightly easier to use.) 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Inductive</span> <span class="id" title="variable">eq</span> {<span class="id" title="variable">X</span>:<span class="id" title="keyword">Type</span>} : <span class="id" title="variable">X</span> → <span class="id" title="variable">X</span> → <span class="id" title="keyword">Prop</span> :=<br/>
+| <span class="id" title="variable">eq_refl</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">x</span>, <span class="id" title="variable">eq</span> <span class="id" title="variable">x</span> <span class="id" title="variable">x</span>.<br/><hr class='doublespaceincode'/>
+<span class="id" title="keyword">Notation</span> "x == y" := (<span class="id" title="variable">eq</span> <span class="id" title="variable">x</span> <span class="id" title="variable">y</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">at</span> <span class="id" title="variable">level</span> 70, <span class="id" title="variable">no</span> <span class="id" title="variable">associativity</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="variable">type_scope</span>.<br/>
+</div>
+
+<div class="doc">
+The way to think about this definition is that, given a set <span class="inlinecode"><span class="id" title="variable">X</span></span>,
+    it defines a <i>family</i> of propositions "<span class="inlinecode"><span class="id" title="variable">x</span></span> is equal to <span class="inlinecode"><span class="id" title="variable">y</span></span>,"
+    indexed by pairs of values (<span class="inlinecode"><span class="id" title="variable">x</span></span> and <span class="inlinecode"><span class="id" title="variable">y</span></span>) from <span class="inlinecode"><span class="id" title="variable">X</span></span>.  There is just
+    one way of constructing evidence for members of this family:
+    applying the constructor <span class="inlinecode"><span class="id" title="variable">eq_refl</span></span> to a type <span class="inlinecode"><span class="id" title="variable">X</span></span> and a single
+    value <span class="inlinecode"><span class="id" title="variable">x</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="variable">X</span></span>, which yields evidence that <span class="inlinecode"><span class="id" title="variable">x</span></span> is equal to <span class="inlinecode"><span class="id" title="variable">x</span></span>.
+
+<div class="paragraph"> </div>
+
+    Other types of the form <span class="inlinecode"><span class="id" title="variable">eq</span></span> <span class="inlinecode"><span class="id" title="variable">x</span></span> <span class="inlinecode"><span class="id" title="variable">y</span></span> where <span class="inlinecode"><span class="id" title="variable">x</span></span> and <span class="inlinecode"><span class="id" title="variable">y</span></span> are not the
+    same are thus uninhabited. 
+<div class="paragraph"> </div>
+
+<a name="lab320"></a><h3 class="section"> </h3>
+ We can use <span class="inlinecode"><span class="id" title="variable">eq_refl</span></span> to construct evidence that, for example, <span class="inlinecode">2</span> <span class="inlinecode">=</span>
+    <span class="inlinecode">2</span>.  Can we also use it to construct evidence that <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span>?
+    Yes, we can.  Indeed, it is the very same piece of evidence!
+
+<div class="paragraph"> </div>
+
+    The reason is that Coq treats as "the same" any two terms that are
+    <i>convertible</i> according to a simple set of computation rules.
+
+<div class="paragraph"> </div>
+
+    These rules, which are similar to those used by <span class="inlinecode"><span class="id" title="variable">Compute</span></span>, include
+    evaluation of function application, inlining of definitions, and
+    simplification of <span class="inlinecode"><span class="id" title="keyword">match</span></span>es.  
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Lemma</span> <span class="id" title="variable">four</span>: 2 + 2 == 1 + 3.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">eq_refl</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab321"></a><h3 class="section"> </h3>
+ The <span class="inlinecode"><span class="id" title="tactic">reflexivity</span></span> tactic that we have used to prove equalities up
+    to now is essentially just shorthand for <span class="inlinecode"><span class="id" title="tactic">apply</span></span> <span class="inlinecode"><span class="id" title="variable">eq_refl</span></span>.
+
+<div class="paragraph"> </div>
+
+    In tactic-based proofs of equality, the conversion rules are
+    normally hidden in uses of <span class="inlinecode"><span class="id" title="tactic">simpl</span></span> (either explicit or implicit in
+    other tactics such as <span class="inlinecode"><span class="id" title="tactic">reflexivity</span></span>).
+
+<div class="paragraph"> </div>
+
+    But you can see them directly at work in the following explicit
+    proof objects: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Definition</span> <span class="id" title="variable">four'</span> : 2 + 2 == 1 + 3 :=<br/>
+&nbsp;&nbsp;<span class="id" title="variable">eq_refl</span> 4.<br/><hr class='doublespaceincode'/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="variable">singleton</span> : <span style='font-size:120%;'>&forall;</span>(<span class="id" title="variable">X</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="variable">x</span>:<span class="id" title="variable">X</span>), []++[<span class="id" title="variable">x</span>] == <span class="id" title="variable">x</span>::[]  :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">fun</span> (<span class="id" title="variable">X</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="variable">x</span>:<span class="id" title="variable">X</span>) ⇒ <span class="id" title="variable">eq_refl</span> [<span class="id" title="variable">x</span>].<br/><hr class='doublespaceincode'/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab322"></a><h2 class="section">Inversion, Again</h2>
+
+<div class="paragraph"> </div>
+
+ We've seen <span class="inlinecode"><span class="id" title="tactic">inversion</span></span> used with both equality hypotheses and
+    hypotheses about inductively defined propositions.  Now that we've
+    seen that these are actually the same thing, we're in a position
+    to take a closer look at how <span class="inlinecode"><span class="id" title="tactic">inversion</span></span> behaves.
+
+<div class="paragraph"> </div>
+
+    In general, the <span class="inlinecode"><span class="id" title="tactic">inversion</span></span> tactic...
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> takes a hypothesis <span class="inlinecode"><span class="id" title="variable">H</span></span> whose type <span class="inlinecode"><span class="id" title="variable">P</span></span> is inductively defined,
+      and
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> for each constructor <span class="inlinecode"><span class="id" title="variable">C</span></span> in <span class="inlinecode"><span class="id" title="variable">P</span></span>'s definition,
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> generates a new subgoal in which we assume <span class="inlinecode"><span class="id" title="variable">H</span></span> was
+        built with <span class="inlinecode"><span class="id" title="variable">C</span></span>,
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> adds the arguments (premises) of <span class="inlinecode"><span class="id" title="variable">C</span></span> to the context of
+        the subgoal as extra hypotheses,
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> matches the conclusion (result type) of <span class="inlinecode"><span class="id" title="variable">C</span></span> against the
+        current goal and calculates a set of equalities that must
+        hold in order for <span class="inlinecode"><span class="id" title="variable">C</span></span> to be applicable,
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> adds these equalities to the context (and, for convenience,
+        rewrites them in the goal), and
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> if the equalities are not satisfiable (e.g., they involve
+        things like <span class="inlinecode"><span class="id" title="variable">S</span></span> <span class="inlinecode"><span class="id" title="variable">n</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="variable">O</span></span>), immediately solves the subgoal. 
+</li>
+</ul>
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+<a name="lab323"></a><h3 class="section"> </h3>
+ <i>Example</i>: If we invert a hypothesis built with <span class="inlinecode"><span class="id" title="variable">or</span></span>, there are
+    two constructors, so two subgoals get generated.  The
+    conclusion (result type) of the constructor (<span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∨</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span>) doesn't
+    place any restrictions on the form of <span class="inlinecode"><span class="id" title="variable">P</span></span> or <span class="inlinecode"><span class="id" title="variable">Q</span></span>, so we don't get
+    any extra equalities in the context of the subgoal. 
+<div class="paragraph"> </div>
+
+<a name="lab324"></a><h3 class="section"> </h3>
+ <i>Example</i>: If we invert a hypothesis built with <span class="inlinecode"><span class="id" title="variable">and</span></span>, there is
+    only one constructor, so only one subgoal gets generated.  Again,
+    the conclusion (result type) of the constructor (<span class="inlinecode"><span class="id" title="variable">P</span></span> <span class="inlinecode">∧</span> <span class="inlinecode"><span class="id" title="variable">Q</span></span>) doesn't
+    place any restrictions on the form of <span class="inlinecode"><span class="id" title="variable">P</span></span> or <span class="inlinecode"><span class="id" title="variable">Q</span></span>, so we don't get
+    any extra equalities in the context of the subgoal.  The
+    constructor does have two arguments, though, and these can be seen
+    in the context in the subgoal. 
+<div class="paragraph"> </div>
+
+<a name="lab325"></a><h3 class="section"> </h3>
+ <i>Example</i>: If we invert a hypothesis built with <span class="inlinecode"><span class="id" title="variable">eq</span></span>, there is
+    again only one constructor, so only one subgoal gets generated.
+    Now, though, the form of the <span class="inlinecode"><span class="id" title="variable">eq_refl</span></span> constructor does give us
+    some extra information: it tells us that the two arguments to <span class="inlinecode"><span class="id" title="variable">eq</span></span>
+    must be the same!  The <span class="inlinecode"><span class="id" title="tactic">inversion</span></span> tactic adds this fact to the
+    context. 
+</div>
+</div>
+
+
+
+</div>
+
+</body>
+</html>

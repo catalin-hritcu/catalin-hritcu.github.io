@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "Solutions"
+AuthUserFile /home/users/hritcu/htdocs//teaching/lyon2019/.htpasswd
+Require valid-user

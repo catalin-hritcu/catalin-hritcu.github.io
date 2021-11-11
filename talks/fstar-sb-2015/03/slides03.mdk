@@ -1,0 +1,84 @@
+[INCLUDE=presentation]
+Title         : Type Systems for Security Verification
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../fstar
+Logo          : False
+Html Header   :
+    <script src="../script.js"></script>
+    <link rel="stylesheet" href="../style.css" id="custom_style">
+Package       : xypic
+~Pre,~Code: language=fstar
+
+~ MathDefs
+[INCLUDE=../latex.tex]
+~
+
+# Stateful Verification Basics #
+
+![fstar-logo]
+
+#### C&#259;t&#259;lin Hri&#355;cu (Inria Paris) ####
+
+Type Systems for Security Verification Lecture
+
+Saarland University
+
+Wednesday, 18 March 2015
+
+[fstar-logo]: ../img/fstar.png { width=200px }
+
+
+## Today ##
+* Hoare logic
+* Weakest precondition (predicate transformers)
+* Proving some very simple stateful programs
+
+## Tutorial
+* Solving old homework
+* New homework
+  - swap (1p), factorial (1p), fibonacci (1p), wp (2 x 1p)
+
+
+## Syntactic pitfalls: nested patterns ##
+* `e` belongs to the **outer** match
+```
+match l1 with
+| hd::tl ->
+  match l2 with
+  | hd::tl -> ...
+  | [] -> e
+```
+
+
+## Syntactic pitfalls: if and semicolon ##
+* `e2` is not within the `if`
+```
+if b then e1; e2
+```
+* more realistic example:
+```
+if guard () then (body (); _while guard body)
+```
+
+
+## Syntactic pitfalls: variable shadowing ##
+* this matches any value
+```
+let x = ...
+match e with ...
+| x ->  ...
+```
+- it doesn't check whether `e = x`
+
+## Naming requirements in F* ##
+- expressions start lower case
+- constructors start upper case
+- kinds start upper case
+- types can start upper or lower case, usually lower case
+
+<!-- TODO:
+- prove the While case for wlp, non-trivial!
+-->

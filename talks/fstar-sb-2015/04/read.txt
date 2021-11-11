@@ -1,0 +1,34 @@
+
+
+assume val read: r:ref int -> St int (requires (fun h -> True))
+                                     (ensures (fun h x h' -> h=h' /\ x=sel h r))
+
+St    a (requires pre) (ensures post) =
+STATE a (fun p h0 -> pre h0 /\ forall x h1. post h0 x h1 ==> p x h1)
+
+St int (requires (fun h -> True))
+       (ensures (fun h x h' -> h=h' /\ x=sel h r))
+
+= STATE int (fun p h0 ->
+    forall x h1. (fun h x h' -> h=h' /\ x=sel h r) h0 x h1 ==> p x h1)
+
+= STATE int (fun p h0 -> forall x h1. h0=h1 /\ x=sel h0 r ==> p x h1)
+
+
+
+[wp style]
+forall p h0. if p (sel h0 r) h0
+             then if ... -> h1 ... then ... and  p v h1
+
+<==>
+
+[hoare style]
+forall p h0. if forall x h1. h0=h1 /\ x=sel h0 r ==> p x h1
+             then if ... -> h1 ... then ... and  p v h1
+=
+forall p h0. if (forall x. x=sel h0 r ==> p x h0)
+             then if ... -> h1 ... then ... and  p v h1
+=
+forall p h0. if p (sel h0 r) h0
+             then if ... -> h1 ... then ... and  p v h1
+

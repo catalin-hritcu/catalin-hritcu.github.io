@@ -1,0 +1,116 @@
+
+Proving
+=======
+(without the contains)
+
+val swap : #a:Type -> r1:ref a -> r2:ref a -> St unit
+      (requires (fun h0 -> True)
+      (ensures (fun h0 _ h1 ->
+                  let x1 = sel h0 r1 in
+                  let x2 = sel h0 r2 in
+                  equal h1 (upd (upd h0 r1 x2) r2 x1)))
+let swap r1 r2 =
+  let y1 = read r1     in
+  let y2 = read r2     in
+  let _  = write r1 y2 in
+  write r2 y1
+
+Spec unfolds (up to logics) to:
+==============================
+val swap : #a:Type -> r1:ref a -> r2:ref a -> STATE unit wp
+wp = (fun p h0 -> forall h1. let x1 = sel h0 r1 in
+                             let x2 = sel h0 r2 in
+                             equal h1 (upd (upd h0 r1 x2) r2 x1)
+                             ==> p () h1)
+
+St    a (requires pre) (ensures post) =
+STATE a (fun p h0 -> pre h0 /\ forall x h1. post h0 x h1 ==> p x h1)
+
+Let rule:
+========
+    G       |- e1 : M t1 wp1
+    G, x:t1 |- e2 : M t2 wp2              x \not\in fv t2
+    ------------------------------------------------------ (T-Let)
+    G |- let x = e1 in e2 : M t2 (bind wp1 (fun x -> wp2))
+
+
+WP computation:
+==============
+let swap r1 r2 =
+  let y1 = read r1     in
+  let y2 = read r2     in
+  let _  = write r1 y2 in
+  write r2 y1
+
+write r2 y1 : STATE unit (fun p h -> p () (upd h r2 y1))   = wp2
+write r1 y2 : STATE unit (fun p h -> p () (upd h r1 y2))   = wp1
+
+by let rule:
+  let _  = write r1 y2 in
+  write r2 y1              : STATE unit (bind wp2 (fun _ -> wp1))
+                         -- CH: mixed up wp1 and wp2 already, sorry
+
+(bind wp2 (fun _ -> wp1))
+= fun p -> wp2 (fun x -> (fun _ -> wp1) x p)
+= fun p -> wp2 (fun x -> wp1 p)
+= fun p -> (fun p h -> p () (upd h r2 y1)) (fun x -> wp1 p)
+= fun p h -> (fun x -> wp1 p) () (upd h r2 y1)
+= fun p h -> wp1 p (upd h r2 y1)
+= fun p h -> (fun p h -> p () (upd h r1 y2)) p (upd h r2 y1)
+= fun p h -> (fun h -> p () (upd h r1 y2)) (upd h r2 y1)
+= fun p h -> p () (upd (upd h r2 y1) r1 y2)               = wp21
+
+read r2 : STATE int (fun p h -> p (sel h r2) h)           = wp3
+
+by let rule:
+  let y2 = read r2     in
+  let _  = write r1 y2 in
+  write r2 y1             : STATE int (bind wp3 (fun y2 -> wp21))
+
+(bind wp3 (fun y2 -> wp21))
+= fun p -> wp3 (fun x -> (fun y2 -> wp21) x p)
+= fun p -> wp3 (fun x -> (fun y2 -> (fun p h -> p () (upd (upd h r2 y1) r1 y2))) x p)
+= fun p -> wp3 (fun x -> (fun p h -> p () (upd (upd h r2 y1) r1 x)) p)
+= fun p -> wp3 (fun x -> (fun h -> p () (upd (upd h r2 y1) r1 x)))
+= fun p -> (fun p h -> p (sel h r2) h) (fun x -> (fun h -> p () (upd (upd h r2 y1) r1 x)))
+= fun p -> (fun x -> (fun h -> p () (upd (upd h r2 y1) r1 x))) (sel h r2) h
+= fun p -> (fun h -> p () (upd (upd h r2 y1) r1 (sel h r2))) h
+= fun p -> p () (upd (upd h r2 y1) r1 (sel h r2))         = wp321
+
+read r1 : STATE int (fun p h -> p (sel h r1) h)           = wp4
+
+by let rule:         swap : STATE int (bind wp4 (fun y1 -> wp321))
+
+(bind wp4 (fun y1 -> wp321))
+= fun p -> wp4 (fun x -> (fun y1 -> wp321) x p)
+= fun p -> wp4 (fun x -> (fun y1 -> (fun p -> p () (upd (upd h r2 y1) r1 (sel h r2)))) x p)
+= fun p -> wp4 (fun x -> (fun p -> p () (upd (upd h r2 x) r1 (sel h r2))) p)
+= fun p -> wp4 (fun x -> p () (upd (upd h r2 x) r1 (sel h r2)))
+= fun p -> (fun p h -> p (sel h r1) h) (fun x -> p () (upd (upd h r2 x) r1 (sel h r2)))
+= fun p h -> (fun x -> p () (upd (upd h r2 x) r1 (sel h r2))) (sel h r1) h
+= fun p h -> p () (upd (upd h r2 (sel h r1)) r1 (sel h r2)) h
+= fun p -> p () (upd (upd h r2 (sel h r1)) r1 (sel h r2))
+
+We're not done yet! Still have to show that the wp we want as a spec
+is stronger than this automatically inferred one. Formally:
+
+forall p h0. (fun p -> p () (upd (upd h r2 (sel h r1)) r1 (sel h r2))) p h0
+         ==> (fun p h0 -> forall h1. let x1 = sel h0 r1 in
+                             let x2 = sel h0 r2 in
+                             equal h1 (upd (upd h0 r1 x2) r2 x1)
+                             ==> p () h1) p h0
+=
+forall p h0. p () (upd (upd h r2 (sel h r1)) r1 (sel h r2)) h0
+         ==> forall h1. let x1 = sel h0 r1 in
+                        let x2 = sel h0 r2 in
+                        equal h1 (upd (upd h0 r1 x2) r2 x1)
+                        ==> p () h1
+= (equal)
+forall p h0. p () (upd (upd h r2 (sel h r1)) r1 (sel h r2)) h0
+         ==> let x1 = sel h0 r1 in
+             let x2 = sel h0 r2 in
+             p () (upd (upd h0 r1 x2) r2 x1)
+
+
+CH: Is unfolding definitions the right way to reduce binds?
+    Anything coarser grained? :)

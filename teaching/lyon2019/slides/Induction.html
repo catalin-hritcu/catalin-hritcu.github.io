@@ -1,0 +1,278 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link href="common/css/sf.css" rel="stylesheet" type="text/css"/>
+<title>Induction: Proof by Induction</title>
+<link href="common/jquery-ui/jquery-ui.css" rel="stylesheet">
+<script src="common/jquery-ui/external/jquery/jquery.js"></script>
+<script src="common/jquery-ui/jquery-ui.js"></script>
+<script src="common/toggleproofs.js"></script>
+<link href="common/css/lf.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="common/slides.js"></script>
+<link href="common/css/slides.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+<div id='logoinheader'><a href='https://softwarefoundations.cis.upenn.edu'>
+<img src='common/media/image/sf_logo_sm.png' alt='Software Foundations Logo'></a></div>
+<div class='booktitleinheader'><a href='index.html'>Volume 1: Logical Foundations</a></div>
+<ul id='menu'>
+   <li class='section_name'><a href='toc.html'>Table of Contents</a></li>
+   <li class='section_name'><a href='coqindex.html'>Index</a></li>
+   <li class='section_name'><a href='deps.html'>Roadmap</a></li>
+</ul>
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Induction<span class="subtitle">Proof by Induction</span></h1>
+
+
+
+<div class="doc">
+We need a bigger hammer: the <i>principle of induction</i> over
+    natural numbers...
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> If <span class="inlinecode"><span class="id" title="variable">P</span>(<span class="id" title="variable">n</span>)</span> is some proposition involving a natural number <span class="inlinecode"><span class="id" title="variable">n</span></span>,
+        and we want to show that <span class="inlinecode"><span class="id" title="variable">P</span></span> holds for <i>all</i> numbers, we can
+        reason like this:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> show that <span class="inlinecode"><span class="id" title="variable">P</span>(<span class="id" title="variable">O</span>)</span> holds
+
+</li>
+<li> show that, if <span class="inlinecode"><span class="id" title="variable">P</span>(<span class="id" title="variable">n'</span>)</span> holds, then so does <span class="inlinecode"><span class="id" title="variable">P</span>(<span class="id" title="variable">S</span></span> <span class="inlinecode"><span class="id" title="variable">n'</span>)</span>
+
+</li>
+<li> conclude that <span class="inlinecode"><span class="id" title="variable">P</span>(<span class="id" title="variable">n</span>)</span> holds for all <span class="inlinecode"><span class="id" title="variable">n</span></span>.
+
+</li>
+</ul>
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+    For example... 
+<div class="paragraph"> </div>
+
+<a name="lab63"></a><h3 class="section"> </h3>
+
+</div>
+<div class="code code-space">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">plus_n_O</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">n</span>:<span class="id" title="variable">nat</span>, <span class="id" title="variable">n</span> = <span class="id" title="variable">n</span> + 0.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">n</span>. <span class="id" title="tactic">induction</span> <span class="id" title="variable">n</span> <span class="id" title="keyword">as</span> [| <span class="id" title="variable">n'</span> <span class="id" title="variable">IHn'</span>].<br/>
+&nbsp;&nbsp;- <span class="comment">(*&nbsp;n&nbsp;=&nbsp;0&nbsp;*)</span>    <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;- <span class="comment">(*&nbsp;n&nbsp;=&nbsp;S&nbsp;n'&nbsp;*)</span> <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="variable">IHn'</span>. <span class="id" title="tactic">reflexivity</span>. <span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab64"></a><h3 class="section"> </h3>
+ Let's try this one together: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">minus_diag</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">n</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="variable">minus</span> <span class="id" title="variable">n</span> <span class="id" title="variable">n</span> = 0.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;WORK&nbsp;IN&nbsp;CLASS&nbsp;*)</span> <span class="id" title="variable">Admitted</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab65"></a><h3 class="section"> </h3>
+ Here's another related fact about addition, which we'll
+    need later.  (The proof is left as an exercise.) 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">plus_comm</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">n</span> <span class="id" title="variable">m</span> : <span class="id" title="variable">nat</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="variable">n</span> + <span class="id" title="variable">m</span> = <span class="id" title="variable">m</span> + <span class="id" title="variable">n</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;FILL&nbsp;IN&nbsp;HERE&nbsp;*)</span> <span class="id" title="variable">Admitted</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab66"></a><h1 class="section">Proofs Within Proofs</h1>
+
+<div class="paragraph"> </div>
+
+ Here's an alternate proof of <span class="inlinecode"><span class="id" title="variable">mult_0_plus</span></span>, using an in-line
+    assertion instead of a separate lemma.  New tactic: <span class="inlinecode"><span class="id" title="tactic">assert</span></span>. 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">mult_0_plus'</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">n</span> <span class="id" title="variable">m</span> : <span class="id" title="variable">nat</span>,<br/>
+&nbsp;&nbsp;(0 + <span class="id" title="variable">n</span>) * <span class="id" title="variable">m</span> = <span class="id" title="variable">n</span> * <span class="id" title="variable">m</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">n</span> <span class="id" title="variable">m</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="variable">H</span>: 0 + <span class="id" title="variable">n</span> = <span class="id" title="variable">n</span>). { <span class="id" title="tactic">reflexivity</span>. }<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> → <span class="id" title="variable">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>. <span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab67"></a><h3 class="section"> </h3>
+ Another example of <span class="inlinecode"><span class="id" title="tactic">assert</span></span>... 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">plus_rearrange_firsttry</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">n</span> <span class="id" title="variable">m</span> <span class="id" title="variable">p</span> <span class="id" title="variable">q</span> : <span class="id" title="variable">nat</span>,<br/>
+&nbsp;&nbsp;(<span class="id" title="variable">n</span> + <span class="id" title="variable">m</span>) + (<span class="id" title="variable">p</span> + <span class="id" title="variable">q</span>) = (<span class="id" title="variable">m</span> + <span class="id" title="variable">n</span>) + (<span class="id" title="variable">p</span> + <span class="id" title="variable">q</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">n</span> <span class="id" title="variable">m</span> <span class="id" title="variable">p</span> <span class="id" title="variable">q</span>.<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;We&nbsp;just&nbsp;need&nbsp;to&nbsp;swap&nbsp;(n&nbsp;+&nbsp;m)&nbsp;for&nbsp;(m&nbsp;+&nbsp;n)...&nbsp;seems<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;like&nbsp;plus_comm&nbsp;should&nbsp;do&nbsp;the&nbsp;trick!&nbsp;*)</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> → <span class="id" title="variable">plus_comm</span>.<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;Doesn't&nbsp;work...Coq&nbsp;rewrites&nbsp;the&nbsp;wrong&nbsp;plus!&nbsp;*)</span><br/>
+<span class="id" title="keyword">Abort</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab68"></a><h3 class="section"> </h3>
+ To use <span class="inlinecode"><span class="id" title="variable">plus_comm</span></span> at the point where we need it, we can introduce
+    a local lemma stating that <span class="inlinecode"><span class="id" title="variable">n</span></span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" title="variable">m</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="variable">m</span></span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" title="variable">n</span></span> (for the particular <span class="inlinecode"><span class="id" title="variable">m</span></span>
+    and <span class="inlinecode"><span class="id" title="variable">n</span></span> that we are talking about here), prove this lemma using
+    <span class="inlinecode"><span class="id" title="variable">plus_comm</span></span>, and then use it to do the desired rewrite. 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">plus_rearrange</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">n</span> <span class="id" title="variable">m</span> <span class="id" title="variable">p</span> <span class="id" title="variable">q</span> : <span class="id" title="variable">nat</span>,<br/>
+&nbsp;&nbsp;(<span class="id" title="variable">n</span> + <span class="id" title="variable">m</span>) + (<span class="id" title="variable">p</span> + <span class="id" title="variable">q</span>) = (<span class="id" title="variable">m</span> + <span class="id" title="variable">n</span>) + (<span class="id" title="variable">p</span> + <span class="id" title="variable">q</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">n</span> <span class="id" title="variable">m</span> <span class="id" title="variable">p</span> <span class="id" title="variable">q</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="variable">H</span>: <span class="id" title="variable">n</span> + <span class="id" title="variable">m</span> = <span class="id" title="variable">m</span> + <span class="id" title="variable">n</span>).<br/>
+&nbsp;&nbsp;{ <span class="id" title="tactic">rewrite</span> → <span class="id" title="variable">plus_comm</span>. <span class="id" title="tactic">reflexivity</span>. }<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> → <span class="id" title="variable">H</span>. <span class="id" title="tactic">reflexivity</span>. <span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab69"></a><h1 class="section">Formal vs. Informal Proof</h1>
+
+<div class="paragraph"> </div>
+
+ <div class="quote">"<i>Informal proofs are algorithms; formal proofs are code</i>."</div> 
+<div class="paragraph"> </div>
+
+ An unreadable formal proof: 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">plus_assoc'</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">n</span> <span class="id" title="variable">m</span> <span class="id" title="variable">p</span> : <span class="id" title="variable">nat</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="variable">n</span> + (<span class="id" title="variable">m</span> + <span class="id" title="variable">p</span>) = (<span class="id" title="variable">n</span> + <span class="id" title="variable">m</span>) + <span class="id" title="variable">p</span>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">intros</span> <span class="id" title="variable">n</span> <span class="id" title="variable">m</span> <span class="id" title="variable">p</span>. <span class="id" title="tactic">induction</span> <span class="id" title="variable">n</span> <span class="id" title="keyword">as</span> [| <span class="id" title="variable">n'</span> <span class="id" title="variable">IHn'</span>]. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> → <span class="id" title="variable">IHn'</span>. <span class="id" title="tactic">reflexivity</span>. <span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab70"></a><h3 class="section"> </h3>
+ Comments and bullets can make things a bit clearer... 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">plus_assoc''</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">n</span> <span class="id" title="variable">m</span> <span class="id" title="variable">p</span> : <span class="id" title="variable">nat</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="variable">n</span> + (<span class="id" title="variable">m</span> + <span class="id" title="variable">p</span>) = (<span class="id" title="variable">n</span> + <span class="id" title="variable">m</span>) + <span class="id" title="variable">p</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">n</span> <span class="id" title="variable">m</span> <span class="id" title="variable">p</span>. <span class="id" title="tactic">induction</span> <span class="id" title="variable">n</span> <span class="id" title="keyword">as</span> [| <span class="id" title="variable">n'</span> <span class="id" title="variable">IHn'</span>].<br/>
+&nbsp;&nbsp;- <span class="comment">(*&nbsp;n&nbsp;=&nbsp;0&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;- <span class="comment">(*&nbsp;n&nbsp;=&nbsp;S&nbsp;n'&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> → <span class="id" title="variable">IHn'</span>. <span class="id" title="tactic">reflexivity</span>. <span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab71"></a><h3 class="section"> </h3>
+ ... but it's still nowhere near as readable for a human as
+    a careful informal proof: 
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <i>Theorem</i>: For any <span class="inlinecode"><span class="id" title="variable">n</span></span>, <span class="inlinecode"><span class="id" title="variable">m</span></span> and <span class="inlinecode"><span class="id" title="variable">p</span></span>,
+
+<div class="paragraph"> </div>
+
+<div class="code code-tight">
+&nbsp;&nbsp;&nbsp;<span class="id" title="variable">n</span>&nbsp;+&nbsp;(<span class="id" title="variable">m</span>&nbsp;+&nbsp;<span class="id" title="variable">p</span>)&nbsp;=&nbsp;(<span class="id" title="variable">n</span>&nbsp;+&nbsp;<span class="id" title="variable">m</span>)&nbsp;+&nbsp;<span class="id" title="variable">p</span>.
+<div class="paragraph"> </div>
+
+</div>
+    <i>Proof</i>: By induction on <span class="inlinecode"><span class="id" title="variable">n</span></span>.
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> First, suppose <span class="inlinecode"><span class="id" title="variable">n</span></span> <span class="inlinecode">=</span> <span class="inlinecode">0</span>.  We must show
+
+<div class="paragraph"> </div>
+
+<div class="code code-tight">
+&nbsp;&nbsp;0&nbsp;+&nbsp;(<span class="id" title="variable">m</span>&nbsp;+&nbsp;<span class="id" title="variable">p</span>)&nbsp;=&nbsp;(0&nbsp;+&nbsp;<span class="id" title="variable">m</span>)&nbsp;+&nbsp;<span class="id" title="variable">p</span>.
+<div class="paragraph"> </div>
+
+</div>
+      This follows directly from the definition of <span class="inlinecode">+</span>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> Next, suppose <span class="inlinecode"><span class="id" title="variable">n</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="variable">S</span></span> <span class="inlinecode"><span class="id" title="variable">n'</span></span>, where
+
+<div class="paragraph"> </div>
+
+<div class="code code-tight">
+&nbsp;&nbsp;<span class="id" title="variable">n'</span>&nbsp;+&nbsp;(<span class="id" title="variable">m</span>&nbsp;+&nbsp;<span class="id" title="variable">p</span>)&nbsp;=&nbsp;(<span class="id" title="variable">n'</span>&nbsp;+&nbsp;<span class="id" title="variable">m</span>)&nbsp;+&nbsp;<span class="id" title="variable">p</span>.
+<div class="paragraph"> </div>
+
+</div>
+      We must show
+
+<div class="paragraph"> </div>
+
+<div class="code code-tight">
+&nbsp;&nbsp;(<span class="id" title="variable">S</span>&nbsp;<span class="id" title="variable">n'</span>)&nbsp;+&nbsp;(<span class="id" title="variable">m</span>&nbsp;+&nbsp;<span class="id" title="variable">p</span>)&nbsp;=&nbsp;((<span class="id" title="variable">S</span>&nbsp;<span class="id" title="variable">n'</span>)&nbsp;+&nbsp;<span class="id" title="variable">m</span>)&nbsp;+&nbsp;<span class="id" title="variable">p</span>.
+<div class="paragraph"> </div>
+
+</div>
+      By the definition of <span class="inlinecode">+</span>, this follows from
+
+<div class="paragraph"> </div>
+
+<div class="code code-tight">
+&nbsp;&nbsp;<span class="id" title="variable">S</span>&nbsp;(<span class="id" title="variable">n'</span>&nbsp;+&nbsp;(<span class="id" title="variable">m</span>&nbsp;+&nbsp;<span class="id" title="variable">p</span>))&nbsp;=&nbsp;<span class="id" title="variable">S</span>&nbsp;((<span class="id" title="variable">n'</span>&nbsp;+&nbsp;<span class="id" title="variable">m</span>)&nbsp;+&nbsp;<span class="id" title="variable">p</span>),
+<div class="paragraph"> </div>
+
+</div>
+      which is immediate from the induction hypothesis.  <i>Qed</i>. 
+</li>
+</ul>
+
+</li>
+</ul>
+
+</div>
+</div>
+
+
+
+</div>
+
+</body>
+</html>

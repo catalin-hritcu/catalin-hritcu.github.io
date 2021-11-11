@@ -1,0 +1,126 @@
+DIGEST b4264f4dcbd342f2ec7962e7404f4fd5
+FLF.IndPrinciples
+R255:266 LF.ProofObjects <> <> lib
+R434:440 Coq.Init.Datatypes <> nat_ind scheme
+prf 955:963 <> mult_0_r'
+R976:978 Coq.Init.Datatypes <> nat ind
+R988:990 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R984:986 Coq.Init.Peano <> ::nat_scope:x_'*'_x not
+R983:983 LF.IndPrinciples <> n var
+R1009:1015 Coq.Init.Datatypes <> nat_ind scheme
+R1009:1015 Coq.Init.Datatypes <> nat_ind scheme
+ind 2438:2441 <> time
+constr 2457:2459 <> day
+constr 2465:2469 <> night
+R2460:2460 LF.IndPrinciples <> time ind
+R2470:2470 LF.IndPrinciples <> time ind
+R2479:2486 LF.IndPrinciples <> time_ind scheme
+ind 2811:2817 <> natlist
+constr 2833:2836 <> nnil
+constr 2842:2846 <> ncons
+R2837:2837 LF.IndPrinciples <> natlist ind
+R2853:2855 Coq.Init.Datatypes <> nat ind
+R2863:2869 LF.IndPrinciples <> natlist ind
+R2871:2871 LF.IndPrinciples <> natlist ind
+R2880:2890 LF.IndPrinciples <> natlist_ind scheme
+R4451:4454 LF.IndProp <> even ind
+R4578:4585 LF.IndProp <> even_ind scheme
+ind 5326:5328 <> le1
+constr 5361:5365 <> le1_n
+constr 5394:5398 <> le1_S
+R5335:5338 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5342:5345 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5339:5341 Coq.Init.Datatypes <> nat ind
+R5332:5334 Coq.Init.Datatypes <> nat ind
+R5379:5381 LF.IndPrinciples <> le1 ind
+R5385:5385 LF.IndPrinciples <> n var
+R5383:5383 LF.IndPrinciples <> n var
+R5414:5414 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5422:5427 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5439:5439 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5428:5430 LF.IndPrinciples <> le1 ind
+R5435:5435 Coq.Init.Datatypes <> S constr
+R5437:5437 LF.IndPrinciples <> m var
+R5432:5432 LF.IndPrinciples <> n var
+R5415:5417 LF.IndPrinciples <> le1 ind
+R5421:5421 LF.IndPrinciples <> m var
+R5419:5419 LF.IndPrinciples <> n var
+R5466:5468 LF.IndPrinciples <> le1 ind
+not 5452:5452 <> :::x_'<=1'_x
+ind 5544:5546 <> le2
+constr 5577:5581 <> le2_n
+constr 5597:5601 <> le2_S
+R5551:5553 Coq.Init.Datatypes <> nat ind
+R5561:5564 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5558:5560 Coq.Init.Datatypes <> nat ind
+R5585:5587 LF.IndPrinciples <> le2 ind
+R5591:5591 LF.IndPrinciples <> n var
+R5589:5589 LF.IndPrinciples <> n var
+R5610:5612 LF.IndPrinciples <> le2 ind
+R5616:5616 LF.IndPrinciples <> m var
+R5614:5614 LF.IndPrinciples <> n var
+R5621:5623 LF.IndPrinciples <> le2 ind
+R5628:5628 Coq.Init.Datatypes <> S constr
+R5630:5630 LF.IndPrinciples <> m var
+R5625:5625 LF.IndPrinciples <> n var
+R5658:5660 LF.IndPrinciples <> le2 ind
+not 5644:5644 <> :::x_'<=2'_x
+R5690:5696 LF.IndPrinciples <> le1_ind scheme
+R5896:5902 LF.IndPrinciples <> le2_ind scheme
+R6433:6439 Coq.Init.Datatypes <> nat_ind scheme
+R6744:6750 Coq.Init.Datatypes <> nat_ind scheme
+prf 8135:8144 <> evenb_even
+R8158:8160 Coq.Init.Datatypes <> nat ind
+R8177:8180 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8181:8184 LF.IndProp <> even ind
+R8186:8186 LF.IndPrinciples <> n var
+R8170:8172 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R8163:8167 LF.Basics <> evenb def
+R8169:8169 LF.IndPrinciples <> n var
+R8173:8176 LF.Basics <> true constr
+R8230:8233 LF.IndProp <> ev_0 constr
+R8230:8233 LF.IndProp <> ev_0 constr
+R8313:8317 LF.IndProp <> ev_SS constr
+R8313:8317 LF.IndProp <> ev_SS constr
+def 8903:8910 <> nat_ind2
+R8934:8937 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8931:8933 Coq.Init.Datatypes <> nat ind
+R8953:8961 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8965:8973 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8974:8974 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9008:9017 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9029:9031 Coq.Init.Datatypes <> nat ind
+R9035:9035 LF.IndPrinciples <> P var
+R9037:9037 LF.IndPrinciples <> n var
+R8986:8988 Coq.Init.Datatypes <> nat ind
+R8994:8997 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8998:8998 LF.IndPrinciples <> P var
+R9001:9001 Coq.Init.Datatypes <> S constr
+R9003:9003 Coq.Init.Datatypes <> S constr
+R9005:9005 LF.IndPrinciples <> n var
+R8991:8991 LF.IndPrinciples <> P var
+R8993:8993 LF.IndPrinciples <> n var
+R8962:8962 LF.IndPrinciples <> P var
+R8950:8950 LF.IndPrinciples <> P var
+R9109:9111 Coq.Init.Datatypes <> nat ind
+R9123:9123 LF.IndPrinciples <> n var
+R9165:9166 LF.IndPrinciples <> P0 var
+R9203:9204 LF.IndPrinciples <> P1 var
+R9236:9236 Coq.Init.Datatypes <> S constr
+R9239:9239 Coq.Init.Datatypes <> S constr
+R9248:9250 LF.IndPrinciples <> PSS var
+R9256:9256 LF.IndPrinciples <> f var
+prf 9641:9650 <> evenb_even
+R9678:9681 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9682:9685 LF.IndProp <> even ind
+R9687:9687 LF.IndPrinciples <> n var
+R9671:9673 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9664:9668 LF.Basics <> evenb def
+R9670:9670 LF.IndPrinciples <> n var
+R9674:9677 LF.Basics <> true constr
+R9740:9747 LF.IndPrinciples <> nat_ind2 def
+R9740:9747 LF.IndPrinciples <> nat_ind2 def
+R9760:9763 LF.IndProp <> ev_0 constr
+R9760:9763 LF.IndProp <> ev_0 constr
+R9821:9825 LF.IndProp <> ev_SS constr
+R9821:9825 LF.IndProp <> ev_SS constr

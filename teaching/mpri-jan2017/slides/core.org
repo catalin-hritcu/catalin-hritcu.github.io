@@ -1,0 +1,511 @@
+* Hoare style
+** Syntax
+
+f ::= True | False | e₁ == e₂ | b2t e | f₁ ∧ f₂ | ~f | ...          (formulas)
+
+c ::= Tot t | ST t (fun h₀ -> fpre) (fun h₀ x h₁ -> fpost) (computation types)
+
+t ::= unit | bool | int | ref int | heap | t -> c                      (types)
+
+k ::= () | true | false | i | l | sel | upd | (=) | (<) | not | ...(constants)
+
+v ::= k | fun x -> e | rec (f:t) x -> e                               (values)
+
+e ::= x | v | e₁ e₂ | if e then e₁ else e₂
+      !e | e₁ := e₂ | let x = e₁ in e₂...                        (expressions)
+
+** Typing
+*** Formula well-formedness
+
+Implicitly assumed everywhere
+
+Γ ⊢ True ok
+
+Γ ⊢ False ok
+
+Γ ⊢ e₁ : Tot t
+Γ ⊢ e₂ : Tot t
+—————————————————
+Γ ⊢ (e₁ == e2) ok
+
+Γ ⊢ e : Tot bool
+—————————————————
+Γ ⊢ (b2t e) ok
+
+Γ ⊢ f₁ ok
+Γ ⊢ f₂ ok
+——————————————
+Γ ⊢ f₁ ∧ f₂ ok
+
+Γ ⊢ f ok
+—————————
+Γ ⊢ ~f ok
+
+*** Total expressions (Γ ⊢ e : Tot t)
+
+Γ ⊢ () : Tot unit
+
+Γ ⊢ true : Tot bool
+
+Γ ⊢ false : Tot bool
+
+Γ ⊢ i : Tot int
+
+Γ ⊢ l : Tot (ref int)
+
+Γ ⊢ sel : heap -> ref int -> Tot int
+
+Γ ⊢ upd : heap -> ref int -> int -> Tot heap
+
+x:t ∈ Γ
+————————–———– (T-Var)
+Γ ⊢ x : Tot t
+
+Γ,x:t ⊢ e : c
+————————–———–————————–———————————– (T-Fun)
+Γ ⊢ fun x -> e : Tot (t -> c)
+
+t = t' -> c  where c is not Tot
+Γ,f:t,x:t' ⊢ e : c
+——––————————–———–————————–————— (T-Rec)
+Γ ⊢ rec (f:t) x -> e : Tot t
+
+Γ ⊢ e₁ : Tot (t -> c)
+Γ ⊢ e₂ : Tot t
+————————–———–———————— (T-App)
+Γ ⊢ e₁ e₂ : c
+
+Γ ⊢ e : Tot bool
+Γ ⊢ e₁ : Tot t
+Γ ⊢ e₂ : Tot t
+————————–———–————————–————————–– (T-IfTot)
+Γ ⊢ if e then e₁ else e₂ : Tot t
+
+*** Stateful expressions (Γ ⊢ e : ST t pre post)
+
+Γ ⊢ e : Tot t
+————————–———–————————–—————————–———————————————————————————————– (T-Lift)
+Γ ⊢ e : ST t (fun h₀ -> True) (fun h₀ x h₁ -> h₀ == h₁ ∧ x == e)
+
+Γ ⊢ e : ST t (fun h₀ -> fpre) (fun h₀ x h₁ -> fpost)
+Γ ⊧ (∀h₀. fpre' ⇒ fpre) ∧ (∀h₀ x h₁. fpost ⇒ fpost')
+————————–———–————————–—————————–—————————————————————— (T-Consequence)
+Γ ⊢ e : ST t (fun h₀ -> fpre') (fun h₀ x h₁ -> fpost')
+
+Γ ⊢ e : Tot (ref int)
+————————–———–————————–—————————–———————————————————————————————–—————————– (T-Read)
+Γ ⊢ !e : ST int (fun h₀ -> True) (fun h₀ x h₁ -> h₀ == h₁ ∧ x == sel h₀ e)
+
+Γ ⊢ e₁ : Tot (ref int)
+Γ ⊢ e₂ : Tot int
+————————–———–————————–—————————–———————————————————————————————–—————————–—– (T-Update)
+Γ ⊢ e₁ := e₂ : ST unit (fun h₀ -> True) (fun h₀ () h₁ -> h₁ == upd h₀ e₁ e₂)
+
+Γ ⊢ e : Tot bool
+Γ ⊢ e₁ : ST t (fun h₀ -> fpre ∧  b2t e) (fun h₀ x h₁ -> fpost)
+Γ ⊢ e₂ : ST t (fun h₀ -> fpre ∧ ~b2t e) (fun h₀ x h₁ -> fpost)
+————————–———–————————–———————————————————–——————————————————————————— (T-IfST)
+Γ ⊢ if e then e₁ else e₂ : ST (fun h₀ -> fpre) (fun h₀ x h₁ -> fpost)
+
+      Γ ⊢ e₁ : ST t₁ (fun h₀ -> fpre₁) (fun h₀ x₁ h₁ -> fpost₁)
+Γ,x₁:t₁ ⊢ e₂ : ST t₂ (fun h₁ -> fpre₂) (fun h₁ x₂ h₂ -> fpost₂)
+–————————–———–————————–—————————–—————————————————————————————–———— (T-Let)
+Γ ⊢ let x₁ = e₁ in e₂ :
+  ST t₂ (fun h₀ -> fpre₁ ∧ ∀x₁ h₁. fpost₁ ⇒ fpre₂)
+        (fun h₀ x₂ h₂ -> fpre₁ ⇒ ∃x₁ h₁. fpost₁ ∧ (fpre₂ ⇒ fpost₂))
+
+** Swap example
+
+val swap : r₁:ref int -> r₂:ref int -> ST unit
+    (requires (fun h₀ -> True))
+    (ensures (fun h₀ _ h₁ -> h₁ == upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)))
+let swap r₁ r₂ =
+  let x₁ = !r₁ in
+  let x₂ = !r₂ in
+  let () = (r₁ := x₂) in
+  r₂ := x₁
+
+by (T-Read)
+Γ ⊢ !r₁ : ST int (fun h₀ -> True) (fun h₀ x₁ h₁ -> h₀ == h₁ ∧ x₁ == sel h₀ r₁)
+
+by (T-Read)
+Γ,x₁:int ⊢ !r₂ : ST int (fun h₁ -> True) (fun h₁ x₂ h₂ -> h₁ == h₂ ∧ x₂ == sel h₁ r₂)
+
+by (T-Update)
+Γ,x₁:int,x₂:int ⊢ r₁ := x₂ : ST unit (fun h₂ -> True) (fun h₂ () h₃ -> h₃ == upd h₂ r₁ x₂)
+
+by (T-Update)
+Γ,x₁:int,x₂:int ⊢ r₂ := x₁ : ST unit (fun h₃ -> True) (fun h₃ () h₄ -> h₄ == upd h₃ r₂ x₁)
+
+by (T-Let)
+Γ,x₁:int,x₂:int
+  ⊢ let _ = (r₁ := x₂) in
+    r₂ := x₁ :
+  ST unit
+    (fun h₂ -> True)
+    (fun h₂ () h₄ -> ∃h₃. h₃ == upd h₂ r₁ x₂ ∧ h₄ == upd h₃ r₂ x₁)
+by (T-Consequence)
+    (fun h₂ () h₄ -> h₄ == upd (upd h₂ r₁ x₂) r₂ x₁)
+
+by (T-Let)
+Γ,x₁:int
+  ⊢ let x₂ = !r₂ in
+    (let _ = (r₁ := x₂) in
+     r₂ := x₁) :
+  ST unit
+    (fun h₁ -> True)
+    (fun h₁ () h₄ -> ∃x₂ h₂. h₁ == h₂ ∧ x₂ == sel h₁ r₂ ∧ h₄ == upd (upd h₂ r₁ x₂) r₂ x₁)
+by (T-Consequence)
+    (fun h₁ () h₄ -> h₄ == upd (upd h₁ r₁ (sel h₁ r₂)) r₂ x₁)
+
+by (T-Let)
+Γ ⊢ let x₁ = !r₁ in
+    (let x₂ = !r₂ in
+    (let _ = (r₁ := x₂) in
+     r₂ := x₁)) :
+  ST unit
+    (fun h₁ -> True)
+    (fun h₁ () h₄ -> ∃x₁ h₁. h₀ == h₁ ∧ x₁ == sel h₀ r₁ ∧ h₄ == upd (upd h₁ r₁ (sel h₁ r₂)) r₂ x₁)
+
+by (T-Consequence)
+val swap : r₁:ref int -> r₂:ref int -> ST unit
+    (requires (fun h₀ -> True))
+    (fun h₀ () h₄ -> h₄ == upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁))
+
+*** Weaker spec
+
+Γ ⊧ (∀h₀. True ⇒ True) ∧
+    (∀h₀ x h₄. h₄ == upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)
+             ⇒ sel h₄ r₁ = sel h₀ r₂  ∧  sel h₄ r₂ = sel h₀ r₁)
+——————————————————————————————————————————————–——————————————– (T-Consequence)
+val swap : r₁:ref int -> r₂:ref int -> ST unit
+    (requires (fun h₀ -> True))
+    (ensures (fun h₀ _ h₄ -> sel h₄ r₁ = sel h₀ r₂ ∧ sel h₄ r₂ = sel h₀ r₁))
+
+** Advantages and disadvantages
+- very intuitive specifications (Hoare logic)
+- specs are clunkier to compose
+  - T-Let pushing preconditions backwards and
+    postcondition forwards at the same time
+  - directional variants possible though
+- hard to automate because of quantifier proliferation
+  (each T-Let adds 4 quantifiers!)
+- rules are hard to derive directly
+
+* Weakest precondition style
+** Syntax
+
+wp, f ::= True | False | e₁ == e₂ | b2t e | f₁ ∧ f₂ | ~f | ...
+          p | fun x -> f | fun p -> f | f₁ f₂ |             (wps and formulas)
+
+c ::= Tot t | ST t wp                                      (computation types)
+
+Intuitively:
+postₜ : t -> heap[final] -> Prop
+preₜ : heap[initial] -> Prop
+wpₜ : postₜ -> Tot preₜ
+
+*** Can obtain old spec syntax as follows:
+
+ST' t fpre fpost = ST t (fun p h₀ -> fpre h₀ ∧ (∀x h₁. fpost h₀ x h₁ ⇒ p x h₁))
+
+For instance:
+
+val swap : r₁:ref int -> r₂:ref int -> ST' unit
+    (requires (fun h₀ -> True))
+    (ensures (fun h₀ _ h₁ -> h₁ == upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)))
+becomes
+val swap : r₁:ref int -> r₂:ref int -> ST unit
+    (fun p h₀ -> ∀x h₁. h₁ == upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁) ⇒ p x h₁)
+by (T-Consequence)
+    (fun p h₀ -> p () (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)))
+
+And the same for a weaker spec:
+
+val swap : r₁:ref int -> r₂:ref int -> ST' unit
+    (requires (fun h₀ -> True))
+    (ensures (fun h₀ _ h₁ -> sel h₁ r₁ = sel h₀ r₂ ∧ sel h₁ r₂ = sel h₀ r₁))
+becomes
+val swap : r₁:ref int -> r₂:ref int -> ST unit
+    (fun p h₀ -> ∀h₁. sel h₁ r₁ = sel h₀ r₂ ∧ sel h₁ r₂ = sel h₀ r₁ ⇒ p x h₁)
+
+** Typing stateful expressions
+
+Γ ⊢ e : Tot t
+————————–———–————————–————————— (T-Lift)
+Γ ⊢ e : ST t (fun p h -> p e h)
+
+Γ ⊢ e : ST t wp
+Γ ⊧ (∀p h. wp' p h  ⇒ wp p h)
+————————–———–————————–——————— (T-Consequence)
+Γ ⊢ e : ST t wp'
+
+Γ ⊢ e : Tot (ref int)
+————————–———–————————–—————————–—————————– (T-Read)
+Γ ⊢ !e : ST int (fun p h -> p (sel h e) h)
+
+Γ ⊢ e₁ : Tot (ref int)
+Γ ⊢ e₂ : Tot int
+————————–———–————————–—————————–—————————————————————– (T-Update)
+Γ ⊢ e₁ := e₂ : ST unit (fun p h -> p () (upd h e₁ e₂))
+
+      Γ ⊢ e₁ : ST t₁ wp₁
+Γ,x₁:t₁ ⊢ e₂ : ST t₂ wp₂
+–————————–———–————————–—————————–—————————–——————————————————– (T-Let)
+Γ ⊢ let x₁ = e₁ in e₂ : ST t₂ (fun p -> wp₁ (fun x₁ -> wp₂ p))
+
+Γ ⊢ e : Tot bool
+Γ ⊢ e₁ : ST t₁ wp₁
+Γ ⊢ e₂ : ST t₂ wp₂
+–————————–———–—————————-—–—————————–—————————–——————————————————–————– (T-IfST)
+Γ ⊢ if e then e₁ else e₂ : ST t₂ (fun p -> if e then wp₁ p else wp₂ p)
+
+** Swap example
+
+val swap : r₁:ref int -> r₂:ref int -> ST unit
+    (fun p h₀ -> p x (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)))
+let swap r₁ r₂ =            h₀
+  let x₁ = !r₁ in           h₁
+  let x₂ = !r₂ in           h₂
+  let () = (r₁ := x₂) in    h₃
+  r₂ := x₁                  h₄
+
+by (T-Read)
+Γ ⊢ !r₁ : ST int (fun p₀ h₀ -> p₀ (sel h₀ r₁) h₀)
+
+by (T-Read)
+Γ,x₁:int ⊢ !r₂ : ST int (fun p₁ h₁ -> p₁ (sel h₁ r₂) h₁)
+
+by (T-Update)
+Γ,x₁:int,x₂:int ⊢ r₁ := x₂ : ST unit (fun p₂ h₂ -> p₂ () (upd h₂ r₁ x₂))
+
+by (T-Update)
+Γ,x₁:int,x₂:int ⊢ r₂ := x₁ : ST unit (fun p₃ h₃ -> p₃ () (upd h₂ r₂ x₁))
+
+by (T-Let)
+Γ,x₁:int,x₂:int
+  ⊢ let _ = (r₁ := x₂) in
+    r₂ := x₁ :
+  ST unit (fun p -> (fun p₂ h₂ -> p₂ () (upd h₂ r₁ x₂))
+                      (fun _ -> (fun h₃ -> p () (upd h₂ r₂ x₁))))
+        = (fun p h₂ -> (fun _ -> (fun h₃ -> p () (upd h₂ r₂ x₁))) () (upd h₂ r₁ x₂))
+        = (fun p h₂ -> (fun h₃ -> p () (upd h₂ r₂ x₁)) (upd h₂ r₁ x₂))
+        = (fun p h₂ -> p () (upd (upd h₂ r₁ x₂) r₂ x₁))
+
+by (T-Let)
+Γ,x₁:int
+  ⊢ let x₂ = !r₂ in
+    (let _ = (r₁ := x₂) in
+     r₂ := x₁) :
+  ST unit (fun p -> (fun p₁ h₁ -> p₁ (sel h₁ r₂) h₁)
+                      (fun x₂ h₂ -> p () (upd (upd h₂ r₁ x₂) r₂ x₁)))
+        = (fun p h₁ -> (fun x₂ h₂ -> p () (upd (upd h₂ r₁ x₂) r₂ x₁)) (sel h₁ r₂) h₁)
+        = (fun p h₁ -> p () (upd (upd h₁ r₁ (sel h₁ r₂)) r₂ x₁))
+
+by (T-Let)
+Γ ⊢ let x₁ = !r₁ in
+    (let x₂ = !r₂ in
+    (let _ = (r₁ := x₂) in
+     r₂ := x₁)) :
+  ST unit (fun p -> (fun p₀ h₀ -> p₀ (sel h₀ r₁) h₀)
+                      (fun x₁ h₁ -> p () (upd (upd h₁ r₁ (sel h₁ r₂)) r₂ x₁)))
+        = (fun p h₀ -> (fun x₁ h₁ -> p () (upd (upd h₁ r₁ (sel h₁ r₂)) r₂ x₁)) (sel h₀ r₁) h₀)
+        = (fun p h₀ -> p () (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)))
+
+val swap : r₁:ref int -> r₂:ref int -> ST unit
+    (fun p h₀ -> p () (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)))
+
+*** Weaker spec
+
+Γ ⊧ (∀p h₀. (∀h₄. sel h₄ r₁ = sel h₀ r₂ ∧ sel h₄ r₂ = sel h₀ r₁ ⇒ p () h₄) ⇒
+            p () (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)))
+
+    can instantiate premise for h₄ = (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁))
+    and show the conclusion
+
+    ⇐ (∀p h₀. (sel (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)) r₁ = sel h₀ r₂
+             ∧ sel (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)) r₂ = sel h₀ r₁
+             ⇒ p () (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁))) ⇒
+              p () (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)))
+    ⇔ (∀p h₀. p () (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)) ⇒
+              p () (upd (upd h₀ r₁ (sel h₀ r₂)) r₂ (sel h₀ r₁)))
+    ⇔ True
+——————————————————————————————————————————————–——————————————–—————– (T-Consequence)
+val swap : r₁:ref int -> r₂:ref int -> ST unit
+    (fun p h₀ -> ∀h₄. sel h₄ r₁ = sel h₀ r₂ ∧ sel h₄ r₂ = sel h₀ r₁ ⇒ p x h₄)
+
+** Factorial example
+
+val factorial_tot : nat -> Tot nat
+let rec factorial_tot x = if x = 0 then 1 else x * factorial_tot (x - 1)
+
+val factorial : r₁:ref nat -> r₂:ref nat -> ST unit
+      (requires (fun h₀ -> True))
+      (ensures (fun h₀ a h₁ -> ∃x.
+                  h₁ == (upd (upd h₀ r₁ x) r₂ (factorial_tot (sel h₀ r₁)))))
+- which desugars to:
+val factorial : r₁:ref nat -> r₂:ref nat -> ST unit
+      (fun p h₀ -> ∀h₆. ∃x. h₆ == (upd (upd h₀ r₁ x) r₂ (factorial_tot (sel h₀ r₁))) ⇒ p () h₆)
+- which is equivalent to
+val factorial : r₁:ref nat -> r₂:ref nat -> ST unit
+      (fun p h₀ -> ∃x. p () (upd (upd h₀ r₁ x) r₂ (factorial_tot (sel h₀ r₁))))
+
+let rec factorial r₁ r₂ =   h₀
+  let x₁ = !r₁ in           h₁
+  if x₁ = 0                 
+  then r₂ := 1              h₆
+  else
+    (r₁ := x₁ - 1;          h₃
+     factorial r₁ r₂;       h₄
+     let x₂ = !r₂ in        h₅
+     r₂ := x₂ * x₁)         h₆
+
+by (T-Update)
+r₁ : ref int, r₂ : ref int, x₁:int, x₂:int
+⊢ r₂ := x₂ * x₁ : ST unit (fun p₅ h₅ -> p₅ () (upd h₅ r₂ (x₂ * x₁)))
+
+by (T-Read)
+r₁ : ref int, r₂ : ref int, x₁:int
+⊢ !r₂ : ST int (fun p₄ h₄ -> p₄ (sel h₄ r₂) h₄)
+
+by (T-Let)
+r₁ : ref int, r₂ : ref int, x₁:int
+⊢ (let x₂ = !r₂ in
+   r₂ := x₂ * x₁) : ST (fun p -> (fun p₄ h₄ -> p₄ (sel h₄ r₂) h₄)
+                                   (fun x₂ h₅ -> p () (upd h₅ r₂ (x₂ * x₁))))
+                     = (fun p h₄ -> (fun x₂ h₅ -> p () (upd h₅ r₂ (x₂ * x₁))) (sel h₄ r₂) h₄)
+                     = (fun p h₄ -> p () (upd h₄ r₂ (sel h₄ r₂ * x₁)))
+
+by (T-App)
+r₁ : ref int, r₂ : ref int, x₁:int
+⊢ factorial r₁ r₂ : ST unit (fun p₃ h₃ -> ∃x. p₃ () (upd (upd h₃ r₁ x) r₂ (factorial_tot (sel h₃ r₁))))
+
+by (T-Let)
+r₁ : ref int, r₂ : ref int, x₁:int
+⊢ (factorial r₁ r₂;
+   let x₂ = !r₂ in
+   r₂ := x₂ * x₁) : ST unit (fun p -> (fun p₃ h₃ -> ∃x. p₃ () (upd (upd h₃ r₁ x) r₂ (factorial_tot (sel h₃ r₁))))
+                                        (fun _ h₄ -> p () (upd h₄ r₂ (sel h₄ r₂ * x₁))))
+                          = (fun p h₃ -> ∃x. (fun h₄ -> p () (upd h₄ r₂ (sel h₄ r₂ * x₁)))
+                                               (upd (upd h₃ r₁ x) r₂ (factorial_tot (sel h₃ r₁))))
+                          = (fun p h₃ -> ∃x. p () (upd (upd (upd h₃ r₁ x) r₂ (factorial_tot (sel h₃ r₁)))
+                                                       r₂ (sel (upd (upd h₃ r₁ x) r₂ (factorial_tot (sel h₃ r₁))) r₂ * x₁)))
+                          ⇔ (fun p h₃ -> ∃x. p () (upd (upd (upd h₃ r₁ x) r₂ (factorial_tot (sel h₃ r₁)))
+                                                       r₂ (factorial_tot (sel h₃ r₁)) * x₁))
+                          ⇔ (fun p h₃ -> ∃x. p () (upd (upd h₃ r₁ x) r₂ (factorial_tot (sel h₃ r₁)) * x₁))
+
+by (T-Update)
+r₁ : ref int, r₂ : ref int, x₁:int
+⊢ r₁ := x₁ - 1 : ST unit (fun p₂ h₁ -> p₂ () (upd h₁ r₁ (x₁-1)))
+
+by (T-Let)
+r₁ : ref int, r₂ : ref int, x₁:int
+  ⊢ (r₁ := x₁ - 1;
+     factorial r₁ r₂;
+     let x₂ = !r₂ in
+     r₂ := x₂ * x₁) : ST unit (fun p -> (fun p₂ h₁ -> p₂ () (upd h₁ r₁ (x₁-1)))
+                                          (fun _ h₃ -> ∃x. p () (upd (upd h₃ r₁ x) r₂ (factorial_tot (sel h₃ r₁)) * x₁)))
+                            = (fun p h₁ -> ∃x. p () (upd (upd (upd h₁ r₁ (x₁-1)) r₁ x) r₂ (factorial_tot (sel (upd h₁ r₁ (x₁-1)) r₁)) * x₁))
+                            ⇔ (fun p h₁ -> ∃x. p () (upd (upd h₁ r₁ x) r₂ (factorial_tot (x₁-1)) * x₁))
+
+by (T-Update)
+r₁ : ref int, r₂ : ref int, x₁:int
+⊢ r₂ := 1 : ST unit (fun p h₁ -> p () (upd h₁ r₂ 1))
+
+by (T-IfST)
+r₁ : ref int, r₂ : ref int, x₁:int
+⊢(if x₁ = 0
+  then r₂ := 1
+  else
+     r₁ := x₁ - 1;
+     factorial r₁ r₂;
+     let x₂ = !r₂ in
+     r₂ := x₂ * x₁) : ST unit (fun p -> if x₁ = 0 then (fun h₁ -> p () (upd h₁ r₂ 1))
+                                                  else (fun h₁ -> ∃x. p () (upd (upd h₁ r₁ x) r₂ (factorial_tot (x₁-1)) * x₁)))
+
+by (T-Read)
+r₁ : ref int, r₂ : ref int, x₁:int
+⊢ !r₁ : ST int (fun p₀ h₀ -> p₀ (sel h₀ r₁) h₀)
+
+by (T-Let)
+r₁ : ref int, r₂ : ref int
+⊢ factorial_body : ST (fun p -> (fun p₀ h₀ -> p₀ (sel h₀ r₁) h₀)
+                                  (fun x₁ -> if x₁ = 0 then (fun h₁ -> p () (upd h₁ r₂ 1))
+                                                       else (fun h₁ -> ∃x. p () (upd (upd h₁ r₁ x) r₂ (factorial_tot (x₁-1)) * x₁))))
+                    = (fun p h₀ -> if sel h₀ r₁ = 0 then p () (upd h₀ r₂ 1)
+                                                    else ∃x. p () (upd (upd h₀ r₁ x) r₂ (factorial_tot (sel h₀ r₁ - 1)) * (sel h₀ r₁)))
+                    ⇔ (fun p h₀ -> ∃x. p () (upd (upd h₀ r₁ x) r₂ (factorial_tot (sel h₀ r₁))))
+
+** [Advanced] Deriving Hoare-Style T-Let from WP-Style T-Let
+
+What do Dijkstra monads say in this case?
+Convert triples to WPs and use WP bind ... what does one get?
+
+ST' t pre post =
+     ST t (fun p h₀ -> pre h₀ ∧ (∀ x h₁. post h₀ x h₁ ⇒ p x h₁))
+
+      Γ ⊢ e₁ : ST' t₁ (fun h₀ -> fpre₁) (fun h₀ x₁ h₁ -> fpost₁)
+Γ,x₁:t₁ ⊢ e₂ : ST' t₂ (fun h₁ -> fpre₂) (fun h₁ x₂ h₂ -> fpost₂)
+–————————–———–————————–—————————–—————————————————————————————–————– (T-Let)
+Γ ⊢ let x₁ = e₁ in e₂ : ST' t₂ (fun h₀ -> fpre) (fun h₀ x h₂ -> fpost)
+
+      Γ ⊢ e₁ : ST t₁ (fun post h₀ -> fpre₁ h₀ ∧ ∀x₁ h₁. fpost₁ h₀ x₁ h₁ ⇒ post x₁ h₁) = wp₁
+Γ,x₁:t₁ ⊢ e₂ : ST t₂ (fun post h₁ -> fpre₂ h₁ ∧ ∀x₂ h₂. fpost₂ h₁ x₂ h₂ ⇒ post x₂ h₂) = wp₂
+———————————————————–————————–———–————————–—————————–—————————————————————————————– (T-Let)
+Γ ⊢ let x₁ = e₁ in e₂ : ST t₂ wp
+
+The WP-based (T-Let) rule works like this:
+Γ ⊢ let x₁ = e₁ in e₂ : ST t₂ (bindₛₜ x ← wp₁ in wp₂)
+Γ ⊢ let x₁ = e₁ in e₂ : ST t₂ (fun post h₀ -> wp₁ (fun x h₁ -> wp₂ post h₁) h₀)
+if we plug in the WPs above we get:
+Γ ⊢ let x₁ = e₁ in e₂ : ST t₂ (fun post h₀ -> (fun post h₀ -> fpre₁ h₀ ∧ ∀x₁ h₁. fpost₁ h₀ x₁ h₁ ⇒ post x₁ h₁)
+                                                (fun x₁ h₁ ->
+                                                  (fun post h₁ -> fpre₂ h₁ ∧ ∀x₂ h₂. fpost₂ h₁ x₂ h₂ ⇒ post x₂ h₂) post h₁)
+                                                h₀)
+= ST t2 (fun post h₀ -> fpre₁ h₀ ∧ ∀x₁ h₁. fpost₁ h₀ x₁ h₁ ⇒ fpre₂ h₁ ∧ ∀x₂ h₂. fpost₂ h₁ x₂ h₂ ⇒ post x₂ h₂) = wp
+- this already allows us to derive fpre
+  fpre = wp (fun x h -> True) = fpre₁ h₀ ∧ ∀x₁ h₁. fpost₁ h₀ x₁ h₁ ⇒ fpre₂ h₁
+
+- and fpost too using the following relation:
+  let as_ensures (#a:Type) (wp:st_wp a) = fun h₀ x h₁ -> ~(wp (fun x' h₁' -> x=!=x' \/ h₁=!=h₁') h₀)
+
+  fpost h₀ x₂ h₂ = ~( (fun post h₀ -> fpre₁ h₀ ∧ ∀x₁ h₁. fpost₁ h₀ x₁ h₁ ⇒ fpre₂ h₁ ∧ ∀x₂ h₂. fpost₂ h₁ x₂ h₂ ⇒ post x₂ h₂)
+                        (fun x₂' h₂' -> x₂'=!=x₂ \/ h₂'=!=h₂) h₀ )
+                 = ~ (fpre₁ h₀ ∧ (∀x₁ h₁. fpost₁ h₀ x₁ h₁ ⇒ (fpre₂ h₁ ∧ ∀x₂'' h₂''. fpost₂ h₁ x₂ h₂ ⇒ x₂=!=x₂'' ∨ h₂=!=h₂'')))
+                 = fpre₁ h₀ ⇒ (∃x₁ h₁. fpost₁ h₀ x₁ h₁ ∧ ~(fpre₂ h₁ ∧ ∀x₂'' h₂''. fpost₂ h₁ x₂ h₂ ⇒ x₂=!=x₂'' ∨ h₂=!=h₂'')))
+                 = fpre₁ h₀ ⇒ ∃x₁ h₁. fpost₁ h₀ x₁ h₁ ∧ (fpre₂ h₁ ⇒ ∃x₂'' h₂''. fpost₂ h₁ x₂ h₂ ∧ x₂==x₂'' ∧ h₂==h₂'')
+                 = fpre₁ h₀ ⇒ ∃x₁ h₁. fpost₁ h₀ x₁ h₁ ∧ (fpre₂ h₁ ⇒ fpost₂ h₁ x₂ h₂)
+
+      Γ ⊢ e₁ : ST t₁ (fun h₀ -> fpre₁) (fun h₀ x₁ h₁ -> fpost₁)
+Γ,x₁:t₁ ⊢ e₂ : ST t₂ (fun h₁ -> fpre₂) (fun h₁ x₂ h₂ -> fpost₂)
+–————————–———–————————–—————————–—————————————————————————————–————–————————— (T-Let)
+Γ ⊢ let x₁ = e₁ in e₂ : ST t₂
+  (fun h₀ -> fpre₁ h₀ ∧ ∀x₁ h₁. fpost₁ h₀ x₁ h₁ ⇒ fpre₂ h₁)
+  (fun h₀ x₂ h₂ -> fpre₁ h₀ ⇒ ∃x₁ h₁. fpost₁ h₀ x₁ h₁ ∧ (fpre₂ h₁ ⇒ fpost₂ h₁ x₂ h₂))
+
+** Better T-Let rule?
+
+      Γ ⊢ e₁ : ST t₁ (fun h₀ -> fpre₁) (fun h₀ x₁ h₁ -> fpost₁)
+Γ,x₁:t₁ ⊢ e₂ : ST t₂ (fun h₁ -> fpre₂) (fun h₁ x₂ h₂ -> fpost₂)
+–————————–———–————————–—————————–—————————————————————————————–——————– (T-Let template)
+Γ ⊢ let x₁ = e₁ in e₂ : ST' t₂ (fun h₀ -> fpre) (fun h₀ x₂ h₂ -> fpost)
+                      = ST  t₂ (fun p h₀ -> fpre h₀ ∧ (∀x₂ h₂. fpost h₀ x₂ h₂ ⇒ p x₂ h₂))
+
+      Γ ⊢ e₁ : ST t₁ (fun post h₀ -> fpre₁ h₀ ∧ ∀x₁ h₁. fpost₁ h₀ x₁ h₁ ⇒ post x₁ h₁) = wp₁
+Γ,x₁:t₁ ⊢ e₂ : ST t₂ (fun post h₁ -> fpre₂ h₁ ∧ ∀x₂ h₂. fpost₂ h₁ x₂ h₂ ⇒ post x₂ h₂) = wp₂
+–————————–———–————————–—————————–—————————————————————————————–———— (T-Let on WPs)
+Γ ⊢ let x₁ = e₁ in e₂ : ST  t₂ (fun p h₀ -> fpre₁ h₀ ∧ (∀x₁ h₁. fpost₁ h₀ x₁ h₁ ⇒ fpre₂ h₁ ∧ ∀x₂ h₂. fpost₂ h₁ x₂ h₂ ⇒ p x₂ h₂))
+
+Problem: find fpre₁, fpost₁, fpre₂, fpost₂ in terms of fpre and fpost so that
+  (fpre h₀ ∧ (∀x₂ h₂. fpost h₀ x₂ h₂ ⇒ p x₂ h₂))
+⇔ (fpre₁ h₀ ∧ (∀x₁ h₁. fpost₁ h₀ x₁ h₁ ⇒ fpre₂ h₁ ∧ ∀x₂ h₂. fpost₂ h₁ x₂ h₂ ⇒ p x₂ h₂))
+
+First step is easy: fpre₁ = fpre
+Might need to keep fpost₁ (in hoare there is also a magic interpolant)
+Can I derive fpre₂ from fpost₁? For instance:
+fpre₂ = ∃h₀. fpost₁ h₀
+Can I derive fpost₂ from fpost?
+from previous derivation we had
+  fpost = fpre ⇒ ∃x₁ h₁. fpost₁ ∧ (fpre₂ ⇒ fpost₂)
+
+... not there yet ...

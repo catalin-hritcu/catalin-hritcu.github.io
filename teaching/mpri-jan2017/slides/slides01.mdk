@@ -1,0 +1,486 @@
+[INCLUDE=presentation]
+Title         : A Gentle Introduction to F*
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../../stuff/fstar
+Logo          : False
+Html Header   :
+    <script src="../../stuff/script.js"></script>
+    <link rel="stylesheet" href="../../stuff/style.css" id="custom_style">
+Package       : xypic
+~Pre,~Code: language=fstar
+
+~ MathDefs
+[INCLUDE=../../stuff/latex.tex]
+~
+
+# A Gentle Introduction to F\* #
+
+~Center
+[![fstar-logo]](https://www.fstar-lang.org)
+
+**[C&#259;t&#259;lin Hri&#355;cu, Inria Paris](http://prosecco.gforge.inria.fr/personal/hritcu/)**
+
+[MPRI 2-30](https://wikimpri.dptinfo.ens-cachan.fr/doku.php?id=cours:c-2-30), Paris, Friday, 6 January 2017
+~
+
+[fstar-logo]: ../../stuff/fstar-new.png { width=200px }
+
+
+## What is F*? ## {#what}
+* {.fragment} Functional programming language
+* {.fragment} Advanced type and effect system
+* {.fragment} Semi-automated program verification tool
+  <!-- - Hoare-style verification using SMT solver -->
+* {.fragment} Proof assistant for writing/checking math proofs
+<!-- based on dependent types -->
+<!--   - can build proofs manually in the pure fragment -->
+
+## Yesterday's poll
+
+![fp-poll]
+
+[fp-poll]: ../../stuff/fp-poll.png { width: 100% }
+
+## Functional programming in F* ##
+
+## Functional programming paradigm ##
+~Fragment
+Computing by evaluating expressions and declarations
+```
+let foo x y = (let z = y + 1 in z - y)
+```
+~
+~Fragment
+Recursive functions
+```
+let rec factorial n = (if n = 0 then 1 else n * (factorial (n - 1)))
+```
+~
+~Fragment
+Immutable data structures
+```
+let rec map f xs = match xs with
+                  | Nil        -> Nil
+                  | Cons hd tl -> Cons (f hd) (map f tl)
+```
+~
+~Fragment
+Unnamed functions (lambdas expressions, first-class values)
+```
+map (fun x -> x + 42) (Cons 1 (Cons 2 (Cons 3 Nil)))
+```
+~
+
+## Functional programming paradigm (2) ##
+avoid mutable state and other "side-effects" when possible
+```
+fold_right (+) (map incr xs) 0
+```
+this pure point-free style considered better than:
+```
+let sum = alloc 0 in
+foreach xs (fun x ->
+  sum := !sum + x + 1
+)
+```
+## Functional programming paradigm (3) ##
+but of course, can't always avoid side-effects
+```
+module Hello
+
+open FStar.IO
+
+let main = print_string "Hello F*\n"
+```
+~Fragment {.console}
+```html
+$ fstar.exe --no_extract ... --odir out --codegen OCaml Hello.fst
+Extracting module Hello
+...
+ocamlfind opt ... out/Hello.ml -o Hello.exe
+./Hello.exe
+Hello F*!
+```
+~
+
+## Functional programming ##
+
+* General-purpose functional languages:
+  - OCaml, F#, Standard ML, Haskell, Scheme, ...
+* {.fragment} **Getting increasingly popular in industry**
+  - Was always a big deal in research
+  <!-- - Microsoft F#, financial industry, ... -->
+* {.fragment} **Ideas picked up by mainstream languages:**
+  - generics in Java and C#
+  - lambdas in Python, JavaScript, Java, C#, C++11, Rust
+  - type inference, garbage collection, etc
+* {.fragment} **F* is an intersection of OCaml and F#**
+  - F* uses OCaml and F# for executing programs
+  - C backend for restricted subset (Low*/KreMLin)
+
+## Types in F* ##
+
+## ML types and type inference ##
+
+~Block {.console}
+```text
+$ocaml
+...
+# 42;;
+- : int = 42
+```
+~
+~Fragment {.console}
+```text
+# let x = 2 in x + 1;;
+- : int = 3
+```
+~
+~Fragment {.console}
+```text
+# "Hello";;
+- : string = "Hello"
+```
+~
+~Fragment {.console}
+```text
+# let rec factorial n = (if n = 0 then 1 else n * (factorial (n - 1)));;
+val factorial : int -> int = <fun>
+```
+~
+~Fragment {.console}
+```text
+# List.map (fun x -> x + 42) [1;2;3];;
+- : int list = [43; 44; 45]
+```
+~
+~Fragment {.console}
+```text
+# List.map (fun x -> x + 42) ["one";"two";"three"];;
+                               ^^^
+Error: This expression has type string but an expression was expected of type int
+```
+~
+
+## Abstract types: an interface ##
+Stack.fsti
+```
+[INCLUDE=../../../code/01/Stack.fsti]
+```
+
+## A client of this interface ##
+StackClient.fst
+```
+[INCLUDE=../../../code/01/StackClient.fst]
+```
+
+## An implementation using lists of ints ##
+Stack.fst
+```
+[INCLUDE=../../../code/01/Stack.fst]
+```
+
+## Clients cannot break abstraction ##
+StackClientBad.fst
+```
+[INCLUDE=../../../code/01/StackClientBad.fst]
+```
+~Fragment{.console}
+```text
+[hritcu@detained code]$ fstar.exe StackClientBad.fst
+./StackClientBad.fst(6,9-6,11) : Error
+Expected expression of type "list (?32566 s0 s1)";
+got expression "s1" of type "Stack.stack"
+```
+~
+
+## More precise types in F* ##
+
+~Fragment
+Refinement types
+```
+type nat = x:int{x>=0}
+```
+~
+
+~Fragment
+Function types (together with refinements)
+```
+val factorial : nat -> nat
+let rec factorial n = (if n = 0 then 1 else n * (factorial (n - 1)))
+```
+~
+
+~Fragment
+Dependent function types
+```
+val incr : x:int -> y:int{x < y}
+let incr x = x + 1
+```
+~
+~Fragment
+Quiz: can you find other types for `incr`?
+~
+
+## Purity in F* ##
+
+The F\* functions we saw so far were all **pure**/**total**
+functions
+
+`Tot` marker = no side-effects, terminates on all inputs
+
+```
+val incr : x:int -> Tot (y:int{x < y})
+let incr x = x + 1
+```
+
+~Fragment
+```
+val factorial : nat -> Tot nat
+let rec factorial n = (if n = 0 then 1 else n * (factorial (n - 1)))
+```
+~
+
+~Fragment
+Quiz: how about giving this weak type to factorial?
+```
+val factorial : int -> Tot int
+```
+~
+~Fragment {.console}
+```text
+let rec factorial n = (if n = 0 then 1 else n * (factorial (n - 1)))
+                                                            ^^^^^
+Subtyping check failed; expected type (x:int{(x << n)}); got type int
+```
+`factorial (-1)` loops! (`int` type in F\* is unbounded)
+~
+
+## Termination checking ##
+
+* based on well-founded ordering on expressions (`<<`)
+  - naturals related by `<` (negative ones unrelated)
+  - inductives (e.g. lists) related by subterm ordering
+* {.fragment}arbitrary pure expression as metric (`decreases e`)
+```
+    val ackermann: m:nat -> n:nat -> Tot nat (decreases %[m;n])
+    let rec ackermann n m =
+      if m=0 then n + 1
+      else if n = 0 then ackermann 1 (m - 1)
+      else ackermann (ackermann (n - 1) m) (m - 1)
+```
+* {.fragment}default metric is lex ordering of all (non-function) args
+```
+    val ackermann: m:nat -> n:nat -> Tot nat
+```
+
+## The divergence effect (Dv) ##
+
+We might not want to prove all code terminating
+```
+    val factorial : int -> Dv int
+```
+
+~Fragment
+Some useful code really is not always terminating
+```
+val eval : exp -> Dv exp
+let rec eval e =
+  match e with
+  | App (Lam x e1) e2 -> eval (subst x e2 e1)
+  | App e1 e2 -> App (eval e1) (eval e2)
+  | Lam x e1 -> Lam x (eval e1)
+  | _ -> e
+let main = eval (App (Lam 0 (App (Var 0) (Var 0)))
+                     (Lam 0 (App (Var 0) (Var 0))))
+```
+~
+~Fragment {.console}
+```text
+./Divergence.exe
+```
+~
+
+## Effects in F* ##
+
+* F* encapsulates effects
+  - e.g. pure code cannot call divergent code
+  - only pure code can appear in specifications
+```
+val factorial : int -> Dv int
+```
+~Block {.console}
+```text
+    type tau = x:int{x = factorial (-1)}
+                     ^^^^^^^^^^^^^^^^^^
+Expected a pure expression; got an expression ... with effect "DIV"
+```
+~
+<!-- Cheating quite badly above since I don't want to tell them about ghost -->
+
+* {.fragment}ML effects are implemented primitively:
+  - `ML` effect: non-termination, state, exceptions, input-output
+  - user can define new effects using monads (Haskell)
+
+* {.fragment}F* automatically lifts effects as needed (`Tot<Dv<ML`)
+  - e.g. divergent code can call pure code directly&br;
+    `(1+2) + factorial (-1) : Dv int`
+
+## State in F* (mutable references) ##
+
+```
+val swap_add_sub : r1:ref int -> r2:ref int -> St unit
+let swap_add_sub r1 r2 =
+  r1 := !r1 + !r2;
+  r2 := !r1 - !r2;
+  r1 := !r1 - !r2
+
+let main =
+  let r1 = alloc 1 in
+  let r2 = alloc 2 in
+  swap_add_sub r1 r2;
+  print_string ("r1=" ^ string_of_int !r1 ^ "; " ^
+                "r2=" ^ string_of_int !r2 ^ "\n")
+```
+~Block {.console}
+```text
+...
+r1=2; r2=1
+```
+~
+~Fragment
+Exercise: write a more natural implementation for `swap`
+~
+
+## Verification in F* ##
+
+## Verifying pure programs ##
+
+- Using refinements (saw this already)
+```
+val factorial : nat -> Tot nat
+```
+- {.fragment}Can equivalently use pre- and post- conditions for this
+```
+val factorial : x:int -> Pure int (requires (x >= 0))
+                                  (ensures (fun y -> y >= 0))
+```
+- {.fragment}`Tot` is actually just an abbreviation
+```
+Tot t = Pure t (requires True) (ensures (fun _ -> True))
+```
+
+## F* program verification system ## {#ver}
+* Each computation assigned
+  - an *effect* (`Pure`, `ST`)
+  - a *result type* (`int`)
+  - a *Hoare-style specification* (pre- and post- conditions)
+```
+val factorial : x:int -> Pure int (requires (x >= 0))
+                                  (ensures (fun y -> y >= 0))
+```
+* {.fragment}Type inference also computes weakest preconditions
+  - works generically for any effect (using Dijkstra monads)
+  - depend on the effect, simple for `Pure`, more complex for `ST` and `ML`
+* {.fragment}Weakest preconditions checked against user's spec
+  - Logical verification conditions discharged by SMT solver (Z3)
+* {.fragment}Related tools: Dafny, Boogie, Frama-C, Spec#, VCC, Why3
+
+
+## Verifying stateful programs
+* Verifying the swap function
+```
+val swap_add_sub : r1:ref int -> r2:ref int -> ST unit
+      (requires (fun h' -> r1<>r2))
+      (ensures (fun h' _ h ->
+                  let x1 = sel h' r1 in
+                  let x2 = sel h' r2 in
+                  equal h (upd (upd h' r1 x2) r2 x1)))
+let swap_add_sub r1 r2 =
+  r1 := !r1 + !r2;
+  r2 := !r1 - !r2;
+  r1 := !r1 - !r2
+```
+* {.fragment}`St` is actually just an abbreviation
+```
+St t = ST t (requires True) (ensures (fun _ _ _ -> True))
+```
+
+## Heap operations (simplified) ##
+```
+module FStar.Heap
+
+  type heap
+
+  val sel   : #a:Type -> heap -> ref a -> Tot a
+  val upd   : #a:Type -> heap -> ref a -> a -> Tot heap
+  val equal : heap -> heap -> Tot bool
+
+  assume SelUpd1 :           sel (upd h r v) r  == v
+  assume SelUpd2 : r<>r' ==> sel (upd h r v) r' == sel h r'
+
+module FStar.ST
+
+  val (!): #a:Type -> r:ref a -> ST a
+    (requires (fun h -> True))
+    (ensures (fun h0 x h1 -> equal h0 h1 /\ x==sel h0 r))
+
+  val (:=): #a:Type -> r:ref a -> v:a -> ST unit
+    (requires (fun h -> True))
+    (ensures (fun h0 x h1 -> equal h1 (upd h0 r v)))
+```
+
+## Uses of F\*
+
+* **[General-Purpose Functional Programming]{color:Black;}**
+  - F\* is programmed in F\*, but not (yet) verified
+
+* {.fragment}**[SMT-based semi-automated verification tool]{color:DarkBlue;}**
+   - [miTLS: Verified implementation of upcoming TLS 1.3](http://www.mitls.org/)
+   - [Wys*: A verified DSL for secure multi-party computations](http://research.microsoft.com/en-us/um/people/nswamy/papers/wys.pdf)
+
+* {.fragment} **[Proof assistant for writing/checking math proofs]{color:DarkRed;}**
+   - [Fragments of F* formalized in F\*](https://github.com/FStarLang/FStar/blob/master/examples/metatheory/MicroFStar.fst)
+   - [ReVer: Verified compiler to reversible circuits](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/1603.01635-1.pdf)
+
+
+## Ongoing research on F\* ##
+
+* [Reasoning about user-defined effects](https://www.fstar-lang.org/papers/dm4free/)
+  - Dijkstra monads for free
+
+* Relational verification
+  - e.g. for more flexible confidentiality proofs
+
+* [Compiling a subset of F* to C (KreMLin)](https://github.com/FStarLang/kremlin)
+  - verifying crypto primitives in F* ([HACL\*](https://github.com/mitls/hacl-star))
+
+* [Securely compiling F* (full abstraction)](https://secure-compilation.github.io/)
+  - to tagged hardware architecture and Intel SGX
+
+## Recommended reading until next time
+
+- F* tutorial (<https://www.fstar-lang.org/tutorial/>)
+  + sections 1-3 for everyone
+  + section 4-6 for whoever found today's lecture too easy
+
+- Please try to solve exercises (at least 1a, 2a, 3c)
+  + if stuck ask on the `#fstar` Slack channel on <http://fpchat.com/>.
+
+- You can also send me your questions by email
+
+- If you're still stuck you can have a look at the solutions
+  + also useful to find out other ways of solving the problem
+
+## Next steps ##
+
+* in 1 weeks: Verifying Stateful Programs in F*
+
+* in 2 weeks: Verified Low-Level Programming Embedded in F* (Jonathan Protzenko)
+
+* in 3 weeks: From "Hoare Logic" to "Dijkstra Monads for Free"
+
+* in 4-5 weeks: Verifying Crypto Implementations in F* (Karthik)

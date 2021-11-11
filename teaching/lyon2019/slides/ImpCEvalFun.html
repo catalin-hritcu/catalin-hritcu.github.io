@@ -1,0 +1,399 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link href="common/css/sf.css" rel="stylesheet" type="text/css"/>
+<title>ImpCEvalFun: An Evaluation Function for Imp</title>
+<link href="common/jquery-ui/jquery-ui.css" rel="stylesheet">
+<script src="common/jquery-ui/external/jquery/jquery.js"></script>
+<script src="common/jquery-ui/jquery-ui.js"></script>
+<script src="common/toggleproofs.js"></script>
+<link href="common/css/lf.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="common/slides.js"></script>
+<link href="common/css/slides.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+<div id='logoinheader'><a href='https://softwarefoundations.cis.upenn.edu'>
+<img src='common/media/image/sf_logo_sm.png' alt='Software Foundations Logo'></a></div>
+<div class='booktitleinheader'><a href='index.html'>Volume 1: Logical Foundations</a></div>
+<ul id='menu'>
+   <li class='section_name'><a href='toc.html'>Table of Contents</a></li>
+   <li class='section_name'><a href='coqindex.html'>Index</a></li>
+   <li class='section_name'><a href='deps.html'>Roadmap</a></li>
+</ul>
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">ImpCEvalFun<span class="subtitle">An Evaluation Function for Imp</span></h1>
+
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+ We saw in the <a href="Imp.html"><span class="inlineref">Imp</span></a> chapter how a naive approach to defining a
+    function representing evaluation for Imp runs into difficulties.
+    There, we adopted the solution of changing from a functional to a
+    relational definition of evaluation.  In this optional chapter, we
+    consider strategies for getting the functional approach to
+    work. 
+</div>
+
+<div class="doc">
+<a name="lab420"></a><h1 class="section">A Broken Evaluator</h1>
+
+</div>
+<div class="code code-space">
+
+<br/>
+</div>
+
+<div class="doc">
+Here was our first try at an evaluation function for commands,
+    omitting <span class="inlinecode"><span class="id" title="variable">WHILE</span></span>. 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="variable">imp_scope</span>.<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="variable">ceval_step1</span> (<span class="id" title="variable">st</span> : <span class="id" title="variable">state</span>) (<span class="id" title="variable">c</span> : <span class="id" title="variable">com</span>) : <span class="id" title="variable">state</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="variable">c</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">SKIP</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">st</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">l</span> <span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span> <span class="id" title="variable">a<sub>1</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="variable">l</span> !<span class="nowrap"><span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>-</span></span>&gt;</span></span> <span class="id" title="variable">aeval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">a<sub>1</sub></span> ; <span class="id" title="variable">st</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">c<sub>1</sub></span> ;; <span class="id" title="variable">c<sub>2</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="variable">st'</span> := <span class="id" title="variable">ceval_step1</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">ceval_step1</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">c<sub>2</sub></span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">TEST</span> <span class="id" title="variable">b</span> <span class="id" title="variable">THEN</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">ELSE</span> <span class="id" title="variable">c<sub>2</sub></span> <span class="id" title="variable">FI</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> (<span class="id" title="variable">beval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">b</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <span class="id" title="variable">ceval_step1</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="variable">ceval_step1</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>2</sub></span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">WHILE</span> <span class="id" title="variable">b<sub>1</sub></span> <span class="id" title="variable">DO</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">END</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">st</span>  <span class="comment">(*&nbsp;bogus&nbsp;*)</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="variable">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="variable">imp_scope</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab421"></a><h3 class="section"> </h3>
+ As we remarked in chapter <a href="Imp.html"><span class="inlineref">Imp</span></a>, in a traditional functional
+    programming language like ML or Haskell we could write the WHILE
+    case as follows:
+<pre>
+    | WHILE b<sub>1</sub> DO c<sub>1</sub> END =&gt;
+        if (beval st b<sub>1</sub>) then
+          ceval_step1 st (c<sub>1</sub>;; WHILE b<sub>1</sub> DO c<sub>1</sub> END)
+        else st
+</pre>
+    Coq doesn't accept such a definition (<span class="inlinecode"><span class="id" title="variable">Error</span>:</span> <span class="inlinecode"><span class="id" title="variable">Cannot</span></span> <span class="inlinecode"><span class="id" title="variable">guess</span></span>
+    <span class="inlinecode"><span class="id" title="variable">decreasing</span></span> <span class="inlinecode"><span class="id" title="variable">argument</span></span> <span class="inlinecode"><span class="id" title="variable">of</span></span> <span class="inlinecode"><span class="id" title="variable">fix</span></span>) because the function we want to
+    define is not guaranteed to terminate. Indeed, the changed
+    <span class="inlinecode"><span class="id" title="variable">ceval_step1</span></span> function applied to the <span class="inlinecode"><span class="id" title="variable">loop</span></span> program from <span class="inlinecode"><span class="id" title="variable">Imp.v</span></span>
+    would never terminate. Since Coq is not just a functional
+    programming language, but also a consistent logic, any potentially
+    non-terminating function needs to be rejected. Here is an
+    invalid(!) Coq program showing what would go wrong if Coq allowed
+    non-terminating recursive functions:
+<pre>
+     Fixpoint loop_false (n : nat) : False := loop_false n.
+</pre>
+    That is, propositions like <span class="inlinecode"><span class="id" title="variable">False</span></span> would become
+    provable (e.g., <span class="inlinecode"><span class="id" title="variable">loop_false</span></span> <span class="inlinecode">0</span> would be a proof of <span class="inlinecode"><span class="id" title="variable">False</span></span>), which
+    would be a disaster for Coq's logical consistency.
+
+<div class="paragraph"> </div>
+
+    Thus, because it doesn't terminate on all inputs, the full version
+    of <span class="inlinecode"><span class="id" title="variable">ceval_step1</span></span> cannot be written in Coq &mdash; at least not without
+    one additional trick... 
+</div>
+
+<div class="doc">
+<a name="lab422"></a><h1 class="section">A Step-Indexed Evaluator</h1>
+
+<div class="paragraph"> </div>
+
+ The trick we need is to pass an <i>additional</i> parameter to the
+    evaluation function that tells it how long to run.  Informally, we
+    start the evaluator with a certain amount of "gas" in its tank,
+    and we allow it to run until either it terminates in the usual way
+    <i>or</i> it runs out of gas, at which point we simply stop evaluating
+    and say that the final result is the empty memory.  (We could also
+    say that the result is the current state at the point where the
+    evaluator runs out of gas &mdash; it doesn't really matter because the
+    result is going to be wrong in either case!) 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="variable">imp_scope</span>.<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="variable">ceval_step2</span> (<span class="id" title="variable">st</span> : <span class="id" title="variable">state</span>) (<span class="id" title="variable">c</span> : <span class="id" title="variable">com</span>) (<span class="id" title="variable">i</span> : <span class="id" title="variable">nat</span>) : <span class="id" title="variable">state</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="variable">i</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="variable">O</span> ⇒ <span class="id" title="variable">empty_st</span><br/>
+&nbsp;&nbsp;| <span class="id" title="variable">S</span> <span class="id" title="variable">i'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="variable">c</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">SKIP</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">st</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">l</span> <span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span> <span class="id" title="variable">a<sub>1</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="variable">l</span> !<span class="nowrap"><span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>-</span></span>&gt;</span></span> <span class="id" title="variable">aeval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">a<sub>1</sub></span> ; <span class="id" title="variable">st</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">c<sub>1</sub></span> ;; <span class="id" title="variable">c<sub>2</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="variable">st'</span> := <span class="id" title="variable">ceval_step2</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">i'</span> <span class="id" title="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">ceval_step2</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">c<sub>2</sub></span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">TEST</span> <span class="id" title="variable">b</span> <span class="id" title="variable">THEN</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">ELSE</span> <span class="id" title="variable">c<sub>2</sub></span> <span class="id" title="variable">FI</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> (<span class="id" title="variable">beval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">b</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <span class="id" title="variable">ceval_step2</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="variable">ceval_step2</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>2</sub></span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">WHILE</span> <span class="id" title="variable">b<sub>1</sub></span> <span class="id" title="variable">DO</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">END</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> (<span class="id" title="variable">beval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">b<sub>1</sub></span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <span class="id" title="keyword">let</span> <span class="id" title="variable">st'</span> := <span class="id" title="variable">ceval_step2</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">i'</span> <span class="id" title="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">ceval_step2</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">c</span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="variable">st</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="variable">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="variable">imp_scope</span>.<br/><hr class='doublespaceincode'/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="variable">imp_scope</span>.<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="variable">ceval_step3</span> (<span class="id" title="variable">st</span> : <span class="id" title="variable">state</span>) (<span class="id" title="variable">c</span> : <span class="id" title="variable">com</span>) (<span class="id" title="variable">i</span> : <span class="id" title="variable">nat</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="variable">option</span> <span class="id" title="variable">state</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="variable">i</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="variable">O</span> ⇒ <span class="id" title="variable">None</span><br/>
+&nbsp;&nbsp;| <span class="id" title="variable">S</span> <span class="id" title="variable">i'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="variable">c</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">SKIP</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">Some</span> <span class="id" title="variable">st</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">l</span> <span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span> <span class="id" title="variable">a<sub>1</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">Some</span> (<span class="id" title="variable">l</span> !<span class="nowrap"><span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>-</span></span>&gt;</span></span> <span class="id" title="variable">aeval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">a<sub>1</sub></span> ; <span class="id" title="variable">st</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">c<sub>1</sub></span> ;; <span class="id" title="variable">c<sub>2</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> (<span class="id" title="variable">ceval_step3</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">i'</span>) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">Some</span> <span class="id" title="variable">st'</span> ⇒ <span class="id" title="variable">ceval_step3</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">c<sub>2</sub></span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">None</span> ⇒ <span class="id" title="variable">None</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">TEST</span> <span class="id" title="variable">b</span> <span class="id" title="variable">THEN</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">ELSE</span> <span class="id" title="variable">c<sub>2</sub></span> <span class="id" title="variable">FI</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> (<span class="id" title="variable">beval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">b</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <span class="id" title="variable">ceval_step3</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="variable">ceval_step3</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>2</sub></span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">WHILE</span> <span class="id" title="variable">b<sub>1</sub></span> <span class="id" title="variable">DO</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">END</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> (<span class="id" title="variable">beval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">b<sub>1</sub></span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <span class="id" title="keyword">match</span> (<span class="id" title="variable">ceval_step3</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">i'</span>) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">Some</span> <span class="id" title="variable">st'</span> ⇒ <span class="id" title="variable">ceval_step3</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">c</span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">None</span> ⇒ <span class="id" title="variable">None</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="variable">Some</span> <span class="id" title="variable">st</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="variable">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="variable">imp_scope</span>.<br/>
+</div>
+
+<div class="doc">
+We can improve the readability of this version by introducing a
+    bit of auxiliary notation to hide the plumbing involved in
+    repeatedly matching against optional states. 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Notation</span> "'LETOPT' x &lt;== e<sub>1</sub> 'IN' e<sub>2</sub>"<br/>
+&nbsp;&nbsp;&nbsp;:= (<span class="id" title="keyword">match</span> <span class="id" title="variable">e<sub>1</sub></span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">Some</span> <span class="id" title="variable">x</span> ⇒ <span class="id" title="variable">e<sub>2</sub></span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">None</span> ⇒ <span class="id" title="variable">None</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>)<br/>
+&nbsp;&nbsp;&nbsp;(<span class="id" title="variable">right</span> <span class="id" title="variable">associativity</span>, <span class="id" title="tactic">at</span> <span class="id" title="variable">level</span> 60).<br/><hr class='doublespaceincode'/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="variable">imp_scope</span>.<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="variable">ceval_step</span> (<span class="id" title="variable">st</span> : <span class="id" title="variable">state</span>) (<span class="id" title="variable">c</span> : <span class="id" title="variable">com</span>) (<span class="id" title="variable">i</span> : <span class="id" title="variable">nat</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="variable">option</span> <span class="id" title="variable">state</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="variable">i</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="variable">O</span> ⇒ <span class="id" title="variable">None</span><br/>
+&nbsp;&nbsp;| <span class="id" title="variable">S</span> <span class="id" title="variable">i'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="variable">c</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">SKIP</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">Some</span> <span class="id" title="variable">st</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">l</span> <span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span> <span class="id" title="variable">a<sub>1</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">Some</span> (<span class="id" title="variable">l</span> !<span class="nowrap"><span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>-</span></span>&gt;</span></span> <span class="id" title="variable">aeval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">a<sub>1</sub></span> ; <span class="id" title="variable">st</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">c<sub>1</sub></span> ;; <span class="id" title="variable">c<sub>2</sub></span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">LETOPT</span> <span class="id" title="variable">st'</span> &lt;== <span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">i'</span> <span class="id" title="variable">IN</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">c<sub>2</sub></span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">TEST</span> <span class="id" title="variable">b</span> <span class="id" title="variable">THEN</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">ELSE</span> <span class="id" title="variable">c<sub>2</sub></span> <span class="id" title="variable">FI</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> (<span class="id" title="variable">beval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">b</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>2</sub></span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="variable">WHILE</span> <span class="id" title="variable">b<sub>1</sub></span> <span class="id" title="variable">DO</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">END</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> (<span class="id" title="variable">beval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">b<sub>1</sub></span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <span class="id" title="variable">LETOPT</span> <span class="id" title="variable">st'</span> &lt;== <span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">i'</span> <span class="id" title="variable">IN</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">c</span> <span class="id" title="variable">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="variable">Some</span> <span class="id" title="variable">st</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="variable">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="variable">imp_scope</span>.<br/><hr class='doublespaceincode'/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="variable">test_ceval</span> (<span class="id" title="variable">st</span>:<span class="id" title="variable">state</span>) (<span class="id" title="variable">c</span>:<span class="id" title="variable">com</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c</span> 500 <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="variable">None</span>    ⇒ <span class="id" title="variable">None</span><br/>
+&nbsp;&nbsp;| <span class="id" title="variable">Some</span> <span class="id" title="variable">st</span> ⇒ <span class="id" title="variable">Some</span> (<span class="id" title="variable">st</span> <span class="id" title="variable">X</span>, <span class="id" title="variable">st</span> <span class="id" title="variable">Y</span>, <span class="id" title="variable">st</span> <span class="id" title="variable">Z</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/><hr class='doublespaceincode'/>
+<span class="comment">(*&nbsp;Compute<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(test_ceval&nbsp;empty_st<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(X&nbsp;<span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span>&nbsp;2;;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TEST&nbsp;(X&nbsp;&lt;=&nbsp;1)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;THEN&nbsp;Y&nbsp;<span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span>&nbsp;3<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ELSE&nbsp;Z&nbsp;<span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span>&nbsp;4<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FI)).<br/>
+&nbsp;&nbsp;&nbsp;====&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Some&nbsp;(2,&nbsp;0,&nbsp;4)&nbsp;&nbsp;&nbsp;*)</span><br/>
+</div>
+
+<div class="doc">
+<a name="lab423"></a><h1 class="section">Relational vs. Step-Indexed Evaluation</h1>
+
+</div>
+<div class="code code-space">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">ceval_step__ceval</span>: <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">c</span> <span class="id" title="variable">st</span> <span class="id" title="variable">st'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span style='font-size:120%;'>&exist;</span><span class="id" title="variable">i</span>, <span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c</span> <span class="id" title="variable">i</span> = <span class="id" title="variable">Some</span> <span class="id" title="variable">st'</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">st</span> =[ <span class="id" title="variable">c</span> ]⇒ <span class="id" title="variable">st'</span>.<br/>
+<div class="togglescript" id="proofcontrol1" onclick="toggleDisplay('proof1');toggleDisplay('proofcontrol1')"><span class="show"></span></div>
+<div class="proofscript" id="proof1" onclick="toggleDisplay('proof1');toggleDisplay('proofcontrol1')">
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">c</span> <span class="id" title="variable">st</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">inversion</span> <span class="id" title="variable">H</span> <span class="id" title="keyword">as</span> [<span class="id" title="variable">i</span> <span class="id" title="variable">E</span>].<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">clear</span> <span class="id" title="variable">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">generalize</span> <span class="id" title="tactic">dependent</span> <span class="id" title="variable">st'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">generalize</span> <span class="id" title="tactic">dependent</span> <span class="id" title="variable">st</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">generalize</span> <span class="id" title="tactic">dependent</span> <span class="id" title="variable">c</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="variable">i</span> <span class="id" title="keyword">as</span> [| <span class="id" title="variable">i'</span> ].<br/><hr class='doublespaceincode'/>
+&nbsp;&nbsp;- <span class="comment">(*&nbsp;i&nbsp;=&nbsp;0&nbsp;--&nbsp;contradictory&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">c</span> <span class="id" title="variable">st</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">H</span>. <span class="id" title="tactic">discriminate</span> <span class="id" title="variable">H</span>.<br/><hr class='doublespaceincode'/>
+&nbsp;&nbsp;- <span class="comment">(*&nbsp;i&nbsp;=&nbsp;S&nbsp;i'&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">c</span> <span class="id" title="variable">st</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="variable">c</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">H</span>; <span class="id" title="tactic">inversion</span> <span class="id" title="variable">H</span>; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">clear</span> <span class="id" title="variable">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;SKIP&nbsp;*)</span> <span class="id" title="tactic">apply</span> <span class="id" title="variable">E_Skip</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;<span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span>&nbsp;*)</span> <span class="id" title="tactic">apply</span> <span class="id" title="variable">E_Ass</span>. <span class="id" title="tactic">reflexivity</span>.<br/><hr class='doublespaceincode'/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;;;&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">i'</span>) <span class="id" title="variable">eqn</span>:<span class="id" title="variable">Heqr1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;Evaluation&nbsp;of&nbsp;r<sub>1</sub>&nbsp;terminates&nbsp;normally&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">E_Seq</span> <span class="id" title="keyword">with</span> <span class="id" title="variable">s</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">IHi'</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="variable">Heqr1</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">IHi'</span>. <span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">H<sub>1</sub></span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;Otherwise&nbsp;--&nbsp;contradiction&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">discriminate</span> <span class="id" title="variable">H<sub>1</sub></span>.<br/><hr class='doublespaceincode'/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;TEST&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="variable">beval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">b</span>) <span class="id" title="variable">eqn</span>:<span class="id" title="variable">Heqr</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;r&nbsp;=&nbsp;true&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">E_IfTrue</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="variable">Heqr</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">IHi'</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;r&nbsp;=&nbsp;false&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">E_IfFalse</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="variable">Heqr</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">IHi'</span>. <span class="id" title="tactic">assumption</span>.<br/><hr class='doublespaceincode'/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;WHILE&nbsp;*)</span> <span class="id" title="tactic">destruct</span> (<span class="id" title="variable">beval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">b</span>) <span class="id" title="variable">eqn</span> :<span class="id" title="variable">Heqr</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;r&nbsp;=&nbsp;true&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c</span> <span class="id" title="variable">i'</span>) <span class="id" title="variable">eqn</span>:<span class="id" title="variable">Heqr1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="comment">(*&nbsp;r<sub>1</sub>&nbsp;=&nbsp;Some&nbsp;s&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">E_WhileTrue</span> <span class="id" title="keyword">with</span> <span class="id" title="variable">s</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="variable">Heqr</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">IHi'</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="variable">Heqr1</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">IHi'</span>. <span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">H<sub>1</sub></span>. <span class="id" title="tactic">assumption</span>. }<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="comment">(*&nbsp;r<sub>1</sub>&nbsp;=&nbsp;None&nbsp;*)</span> <span class="id" title="tactic">discriminate</span> <span class="id" title="variable">H<sub>1</sub></span>. }<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;r&nbsp;=&nbsp;false&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">injection</span> <span class="id" title="variable">H<sub>1</sub></span>. <span class="id" title="tactic">intros</span> <span class="id" title="variable">H<sub>2</sub></span>. <span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="variable">H<sub>2</sub></span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">E_WhileFalse</span>. <span class="id" title="tactic">apply</span> <span class="id" title="variable">Heqr</span>. <span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">ceval_step_more</span>: <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">i<sub>1</sub></span> <span class="id" title="variable">i<sub>2</sub></span> <span class="id" title="variable">st</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">c</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="variable">i<sub>1</sub></span> ≤ <span class="id" title="variable">i<sub>2</sub></span> →<br/>
+&nbsp;&nbsp;<span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c</span> <span class="id" title="variable">i<sub>1</sub></span> = <span class="id" title="variable">Some</span> <span class="id" title="variable">st'</span> →<br/>
+&nbsp;&nbsp;<span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c</span> <span class="id" title="variable">i<sub>2</sub></span> = <span class="id" title="variable">Some</span> <span class="id" title="variable">st'</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">induction</span> <span class="id" title="variable">i<sub>1</sub></span> <span class="id" title="keyword">as</span> [|<span class="id" title="variable">i<sub>1</sub>'</span>]; <span class="id" title="tactic">intros</span> <span class="id" title="variable">i<sub>2</sub></span> <span class="id" title="variable">st</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">c</span> <span class="id" title="variable">Hle</span> <span class="id" title="variable">Hceval</span>.<br/>
+&nbsp;&nbsp;- <span class="comment">(*&nbsp;i<sub>1</sub>&nbsp;=&nbsp;0&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>. <span class="id" title="tactic">discriminate</span> <span class="id" title="variable">Hceval</span>.<br/>
+&nbsp;&nbsp;- <span class="comment">(*&nbsp;i<sub>1</sub>&nbsp;=&nbsp;S&nbsp;i<sub>1</sub>'&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="variable">i<sub>2</sub></span> <span class="id" title="keyword">as</span> [|<span class="id" title="variable">i<sub>2</sub>'</span>]. <span class="id" title="tactic">inversion</span> <span class="id" title="variable">Hle</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="variable">Hle'</span>: <span class="id" title="variable">i<sub>1</sub>'</span> ≤ <span class="id" title="variable">i<sub>2</sub>'</span>) <span class="id" title="tactic">by</span> <span class="id" title="tactic">omega</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="variable">c</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;SKIP&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="variable">Hceval</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;<span style='font-size:85%;'><span style='vertical-align:5%;'><span style='letter-spacing:-.2em;'>:</span>:</span>=</span>&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="variable">Hceval</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;;;&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>. <span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c<sub>1</sub></span> <span class="id" title="variable">i<sub>1</sub>'</span>) <span class="id" title="variable">eqn</span>:<span class="id" title="variable">Heqst1'o</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;st<sub>1</sub>'o&nbsp;=&nbsp;Some&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> (<span class="id" title="variable">IHi1'</span> <span class="id" title="variable">i<sub>2</sub>'</span>) <span class="id" title="keyword">in</span> <span class="id" title="variable">Heqst1'o</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="variable">Heqst1'o</span>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> (<span class="id" title="variable">IHi1'</span> <span class="id" title="variable">i<sub>2</sub>'</span>) <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;st<sub>1</sub>'o&nbsp;=&nbsp;None&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">discriminate</span> <span class="id" title="variable">Hceval</span>.<br/><hr class='doublespaceincode'/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;TEST&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>. <span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="variable">beval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">b</span>); <span class="id" title="tactic">apply</span> (<span class="id" title="variable">IHi1'</span> <span class="id" title="variable">i<sub>2</sub>'</span>) <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/><hr class='doublespaceincode'/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="comment">(*&nbsp;WHILE&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>. <span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="variable">beval</span> <span class="id" title="variable">st</span> <span class="id" title="variable">b</span>); <span class="id" title="tactic">try</span> <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c</span> <span class="id" title="variable">i<sub>1</sub>'</span>) <span class="id" title="variable">eqn</span>: <span class="id" title="variable">Heqst1'o</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;st<sub>1</sub>'o&nbsp;=&nbsp;Some&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> (<span class="id" title="variable">IHi1'</span> <span class="id" title="variable">i<sub>2</sub>'</span>) <span class="id" title="keyword">in</span> <span class="id" title="variable">Heqst1'o</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> → <span class="id" title="variable">Heqst1'o</span>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> (<span class="id" title="variable">IHi1'</span> <span class="id" title="variable">i<sub>2</sub>'</span>) <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <span class="comment">(*&nbsp;i<sub>1</sub>'o&nbsp;=&nbsp;None&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">Hceval</span>. <span class="id" title="tactic">discriminate</span> <span class="id" title="variable">Hceval</span>. <span class="id" title="keyword">Qed</span>.<br/><hr class='doublespaceincode'/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">ceval__ceval_step</span>: <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">c</span> <span class="id" title="variable">st</span> <span class="id" title="variable">st'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">st</span> =[ <span class="id" title="variable">c</span> ]⇒ <span class="id" title="variable">st'</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style='font-size:120%;'>&exist;</span><span class="id" title="variable">i</span>, <span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c</span> <span class="id" title="variable">i</span> = <span class="id" title="variable">Some</span> <span class="id" title="variable">st'</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">c</span> <span class="id" title="variable">st</span> <span class="id" title="variable">st'</span> <span class="id" title="variable">Hce</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="variable">Hce</span>.<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;FILL&nbsp;IN&nbsp;HERE&nbsp;*)</span> <span class="id" title="variable">Admitted</span>.<br/><hr class='doublespaceincode'/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">ceval_and_ceval_step_coincide</span>: <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">c</span> <span class="id" title="variable">st</span> <span class="id" title="variable">st'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">st</span> =[ <span class="id" title="variable">c</span> ]⇒ <span class="id" title="variable">st'</span><br/>
+&nbsp;&nbsp;↔ <span style='font-size:120%;'>&exist;</span><span class="id" title="variable">i</span>, <span class="id" title="variable">ceval_step</span> <span class="id" title="variable">st</span> <span class="id" title="variable">c</span> <span class="id" title="variable">i</span> = <span class="id" title="variable">Some</span> <span class="id" title="variable">st'</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">c</span> <span class="id" title="variable">st</span> <span class="id" title="variable">st'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">split</span>. <span class="id" title="tactic">apply</span> <span class="id" title="variable">ceval__ceval_step</span>. <span class="id" title="tactic">apply</span> <span class="id" title="variable">ceval_step__ceval</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab424"></a><h1 class="section">Determinism of Evaluation Again</h1>
+
+<div class="paragraph"> </div>
+
+ Using the fact that the relational and step-indexed definition of
+    evaluation are the same, we can give a slicker proof that the
+    evaluation <i>relation</i> is deterministic. 
+</div>
+<div class="code code-tight">
+
+<span class="id" title="keyword">Theorem</span> <span class="id" title="variable">ceval_deterministic'</span> : <span style='font-size:120%;'>&forall;</span><span class="id" title="variable">c</span> <span class="id" title="variable">st</span> <span class="id" title="variable">st<sub>1</sub></span> <span class="id" title="variable">st<sub>2</sub></span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">st</span> =[ <span class="id" title="variable">c</span> ]⇒ <span class="id" title="variable">st<sub>1</sub></span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">st</span> =[ <span class="id" title="variable">c</span> ]⇒ <span class="id" title="variable">st<sub>2</sub></span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="variable">st<sub>1</sub></span> = <span class="id" title="variable">st<sub>2</sub></span>.<br/>
+<div class="togglescript" id="proofcontrol2" onclick="toggleDisplay('proof2');toggleDisplay('proofcontrol2')"><span class="show"></span></div>
+<div class="proofscript" id="proof2" onclick="toggleDisplay('proof2');toggleDisplay('proofcontrol2')">
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="variable">c</span> <span class="id" title="variable">st</span> <span class="id" title="variable">st<sub>1</sub></span> <span class="id" title="variable">st<sub>2</sub></span> <span class="id" title="variable">He<sub>1</sub></span> <span class="id" title="variable">He<sub>2</sub></span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">ceval__ceval_step</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">He<sub>1</sub></span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">ceval__ceval_step</span> <span class="id" title="keyword">in</span> <span class="id" title="variable">He<sub>2</sub></span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">inversion</span> <span class="id" title="variable">He<sub>1</sub></span> <span class="id" title="keyword">as</span> [<span class="id" title="variable">i<sub>1</sub></span> <span class="id" title="variable">E<sub>1</sub></span>].<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">inversion</span> <span class="id" title="variable">He<sub>2</sub></span> <span class="id" title="keyword">as</span> [<span class="id" title="variable">i<sub>2</sub></span> <span class="id" title="variable">E<sub>2</sub></span>].<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">ceval_step_more</span> <span class="id" title="keyword">with</span> (<span class="id" title="variable">i<sub>2</sub></span> := <span class="id" title="variable">i<sub>1</sub></span> + <span class="id" title="variable">i<sub>2</sub></span>) <span class="id" title="keyword">in</span> <span class="id" title="variable">E<sub>1</sub></span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="variable">ceval_step_more</span> <span class="id" title="keyword">with</span> (<span class="id" title="variable">i<sub>2</sub></span> := <span class="id" title="variable">i<sub>1</sub></span> + <span class="id" title="variable">i<sub>2</sub></span>) <span class="id" title="keyword">in</span> <span class="id" title="variable">E<sub>2</sub></span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="variable">E<sub>1</sub></span> <span class="id" title="keyword">in</span> <span class="id" title="variable">E<sub>2</sub></span>. <span class="id" title="tactic">inversion</span> <span class="id" title="variable">E<sub>2</sub></span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">omega</span>. <span class="id" title="tactic">omega</span>. <span class="id" title="keyword">Qed</span>.<br/>
+</div>
+</div>
+</div>
+
+
+
+</div>
+
+</body>
+</html>

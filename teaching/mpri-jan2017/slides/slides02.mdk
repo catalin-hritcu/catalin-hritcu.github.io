@@ -1,0 +1,97 @@
+[INCLUDE=presentation]
+Title         : Program Verification with F*
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../../stuff/fstar
+Logo          : False
+Html Header   :
+    <script src="../../stuff/script.js"></script>
+    <link rel="stylesheet" href="../../stuff/style.css" id="custom_style">
+Package       : xypic
+~Pre,~Code: language=fstar
+
+~ MathDefs
+[INCLUDE=../../stuff/latex.tex]
+~
+
+# Program Verification with F* #
+
+~Center
+[![fstar-logo]](https://www.fstar-lang.org)
+
+**[C&#259;t&#259;lin Hri&#355;cu, Inria Paris](http://prosecco.gforge.inria.fr/personal/hritcu/)**
+
+[MPRI 2-30](https://wikimpri.dptinfo.ens-cachan.fr/doku.php?id=cours:c-2-30), Paris, Friday, 13 January 2017
+~
+
+[fstar-logo]: ../../stuff/fstar-new.png { width=200px }
+
+## Today: Program Verification with F* ##
+
+- Verifying purely functional programs
+  + intrinsic proof style (introduced last week)
+  + extrinsic proof style
+
+- More interactive than last time!
+
+## Verifying purely functional programs ##
+
+Verifying list-manipulating programs
+
+```
+type list (a:Type) =
+  | Nil  : list a
+  | Cons : hd:a -> tl:list a -> list a
+```
+
+## Using refinement types for stacks ##
+
+```
+[INCLUDE=../../../code/02/RefinedStack.fst]
+```
+
+## Client for RefinedStack ##
+
+```
+[INCLUDE=../../../code/02/RefinedStackClient.fst]
+```
+
+- {.fragment}Exercise: redesign `RefinedStack` interface so that this code works
+
+## Intrinsic proofs (Hoare-style specs) ##
+
+```
+[INCLUDE=../../../code/02/AppInstrinsic.fst]
+```
+
+## Extrinsic proofs (Lemmas) ##
+
+```
+[INCLUDE=../../../code/02/AppExtrinsic.fst]
+```
+
+- {.fragment}[Exercise 4c (append\_mem)](https://www.fstar-lang.org/tutorial/tutorial.html); [Exercise 4e (find\_some)](https://www.fstar-lang.org/tutorial/tutorial.html)
+
+## Often one really needs lemmas ##
+
+```
+[INCLUDE=../../../code/02/Rev.fst]
+```
+
+- {.fragment}[Exercise 4d (snoc_injective; challenge)](https://www.fstar-lang.org/tutorial/tutorial.html)
+
+## Insertion Sort
+
+- [Insertion Sort](http://prosecco.gforge.inria.fr/personal/hritcu/teaching/mpri-jan2017/code/02/InsertionSort.fst)
+
+- {.fragment}Homework: [Binary Search Tree](http://prosecco.gforge.inria.fr/personal/hritcu/teaching/mpri-jan2017/code/02/BinarySearchTree.fst)
+
+## Next steps ##
+
+* in 1 week: Verified Low-Level Programming Embedded in F* (Jonathan Protzenko)
+
+* in 2 weeks: From "Hoare Logic" to "Dijkstra Monads for Free"
+
+* in 3-4 weeks: Verifying Crypto Implementations in F* (Karthik)

@@ -1,0 +1,389 @@
+[INCLUDE=presentation]
+Title         : Type Systems for Security Verification
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../fstar
+Logo          : False
+Html Header   :
+    <script src="../script.js"></script>
+    <link rel="stylesheet" href="../style.css" id="custom_style">
+Package       : xypic
+~Pre,~Code: language=fstar
+
+~ MathDefs
+[INCLUDE=../latex.tex]
+~
+
+# Introduction to F\* #
+
+![fstar-logo]
+
+#### C&#259;t&#259;lin Hri&#355;cu (Inria Paris) ####
+
+Type Systems for Security Verification Lecture
+
+Saarland University
+
+Monday, 16 March 2015
+
+[fstar-logo]: ../img/fstar.png { width=200px }
+
+## Teaching crew ##
+
+* C&#259;t&#259;lin Hri&#355;cu (Inria Paris)
+
+* Matteo Maffei (Saarland University)
+
+* Niklas Grimm (Saarland University)
+
+
+## Current F* team ##
+
+* Karthik Bhargavan (Inria Paris)
+* Antoine Delignat-Lavaud (Inria Paris)
+* C&eacute;dric Fournet (MSR Cambridge)
+* C&#259;t&#259;lin Hri&#355;cu (Inria Paris)
+* Chantal Keller (MSR-Inria)
+* Aseem Rastogi (University of Maryland)
+* Pierre-Yves Strub (IMDEA Software Institute)
+
+* **Nikhil Swamy** (MSR Redmond)
+
+# Introduction to F* #
+
+![fstar-logo]
+
+
+## What is F*? ## {#what}
+* {.fragment} Programming language from ML family
+  - functional programming with primitive side-effects
+* {.fragment} Type-checker
+  - implementing advanced type and effect system
+* {.fragment} Program verification system
+  - discharges verification conditions using SMT solver
+* {.fragment} Proof assistant wannabe
+  - consistent pure fragment
+
+
+## F* programming language ## {#pl}
+* Call-by-value functional language
+* Intersection of F# and OCaml
+  - erases to F# and OCaml for execution
+  - also compiles to JavaScript
+* Side-effects are primitive
+  - non-termination, state, exceptions, input-output
+
+Competition: your favourite programming language
+{.fragment}
+
+
+## F* type and effect system ## {#types}
+* System $F^\omega$
+  - polymorphic $\lambda$-calculus with type operators and kinds
+* {.fragment} dependent types
+  - since v1.0 full dependency on pure expressions, not just on values
+* {.fragment} refinement types, for instance `x:int{x > 0}`
+* {.fragment} inductive types (dependent pattern matching)
+* {.fragment} subtyping
+* {.fragment} type inference (higher-order unification)
+* {.fragment} effect inference, lattice of effects
+<!-- draw this!!
+     http://prosecco.gforge.inria.fr/personal/hritcu/talks/fstar-sb-2015/stuff/20150316_110804.jpg -->
+
+Competition: Coq, (Liquid/Dependent) Haskell, Agda, Idris
+{.fragment}
+
+<!-- this just looks horrible (did it on the board)
+  ~ Snippet
+  \xymatrix@R-2pc{
+  {\sf PURE}\ar[r]  & {\sf DIV} \ar[r]\ar[dr] & {\sf STATE} \ar[r]& {\sf ALL} \\
+                   &                        & {\sf EXN}  \ar[ur]&
+  }
+  ~
+-->
+
+
+## F* program verification system ## {#ver}
+* Each "type & effect" extended with "predicate transformer"
+  - higher-order function computing weakest precondition (Dijkstra)
+* Verification conditions depend on the effect
+  - simple for `PURE`, complex for `ALL`
+* Type inference includes VCgen
+* VCs discharged by SMT solver (Z3)
+
+Competition: Dafny, Boogie, Frama-C, Spec#, VCC, Why3
+{.fragment}
+
+
+## F*'s proof assistant dreams ## {#proofs}
+* Logically consistent pure fragment (we hope)
+* Semantic termination checking
+  - based on well-founded ordering on expressions
+  - arbitrary pure expression as metric (decreases clause)
+* Intrinsic, extrinsic, and constructive proof styles
+  - intrinsic = one specification chosen at definition time (e.g. refinement)
+  - extrinsic = lemmas about pure expressions proved after the fact
+
+Competition: Coq, Isabelle, HOL4, ACL2, PVS, Agda
+{.fragment}
+
+
+## Quicksort ## {#qsc}
+
+~Fragment
+```
+val quicksort: #a:Type -> f:(a -> a -> Tot bool){total_order a f} ->
+    l:list a -> Tot (m:(list a){sorted f m /\ forall i. count i l = count i m})
+      (decreases (length l))
+```
+~
+<!-- TODO: syntax highlighting for types a total mess -->
+
+```
+open List
+let rec quicksort f l =
+  match l with
+  | [] -> []
+  | pivot::tl -> let hi, lo = partition (f pivot) tl in 
+                 append (quicksort f lo) (pivot::quicksort f hi)
+```
+
+~Fragment
+The `List` library contains:
+
+```
+val partition: #a:Type -> (a -> Tot bool) -> list a -> Tot (list a * list a)
+val append:    #a:Type -> list a -> list a -> Tot (list a)
+```
+~
+
+## Spec helpers are just total functions ## {#qsc-helpers}
+
+```
+val sorted: #a:Type -> (a -> a -> Tot bool) -> list a -> Tot bool
+let rec sorted f l =
+  match l with
+  | x::y::tl -> f x y && sorted f (y::tl)
+  | _ -> true
+  
+val count: #a:Type -> a -> list a -> Tot nat
+let count x l =
+  match l with
+  | [] -> 0 
+  | hd::tl -> if hd=x then 1 + count x tl else count x tl
+```
+
+```
+type total_order (a:Type) (f: (a -> a -> Tot bool)) =
+     (forall a. f a a)                                  (* reflexivity   *)
+  /\ (forall a1 a2. (f a1 a2 /\ f a2 a1)  ==> a1 = a2)  (* anti-symmetry *)
+  /\ (forall a1 a2 a3. f a1 a2 /\ f a2 a3 ==> f a1 a3)  (* transitivity  *)
+  /\ (forall a1 a2. f a1 a2 \/ f a2 a1)                 (* totality  *)
+```
+
+## Are we done? ##
+```
+val quicksort: #a:Type -> f:(a -> a -> Tot bool){total_order a f} ->
+    l:list a -> Tot (m:(list a){sorted f m /\ forall i. count i l = count i m})
+      (decreases (length l))
+```
+```
+open List
+let rec quicksort f l =
+  match l with
+  | [] -> []
+  | pivot::tl -> let hi, lo = partition (f pivot) tl in 
+                 append (quicksort f lo) (pivot::quicksort f hi)
+```
+
+~Fragment {.console}
+``` html
+Subtyping check failed; 
+  expected type lo:list a{%[length lo] << %[length l]}; 
+  got type (list a) (qsc.fst(99,19-99,21))
+```
+~
+
+## Lemmas (extrinsic proofs) ##
+```
+val partition_lemma: f:('a -> Tot bool) -> l:list 'a -> Lemma (requires True)
+      (ensures (forall hi lo. (hi, lo) = partition f l
+                ==> (length l = length hi + length lo
+                 /\ (forall x. (mem x hi ==> f x)
+                            /\ (mem x lo ==> not (f x))
+                            /\ (count x l = count x hi + count x lo)))))
+      [SMTPat (partition f l)]
+let rec partition_lemma f l = match l with
+    | [] -> ()
+    | hd::tl -> partition_lemma f tl
+```
+~Fragment {.console}
+``` html
+mono ../../bin/fstar.exe --fstar_home ../..  ../../lib/list.fst qsc.fst
+Verified module: Prims
+Verified module: List
+Verified module: QuickSort
+All verification conditions discharged successfully
+```
+~
+
+
+## History ## {#history}
+
+![timeline]
+
+* {.fragment} F\* version 1.0:
+  - open source (<https://github.com/FStarLang/FStar>)
+  - cross platform (Windows, Mac OS X, Linux)
+  - re-written in F\* & F# subset: 21,000 LOC
+  - backends: OCaml, F# (planned), JavaScript (wip)
+  - more streamlined, expressive, and efficient than prior versions
+  - [ICFP'15 submission: Semantic Purity and Effects Reunited in F*](http://fstar-lang.org/papers/icfp2015)
+
+[timeline]: img/timeline.png
+
+<!-- Add fork me on github logo?
+https://github.com/simonwhitaker/github-fork-ribbon-css -->
+
+
+## Applications of F* (and family) ## {#apps}
+
+* {.fragment} Previous version (0.7): ~50,000 LOC
+  - secure browser extensions
+  - JavaScript and TypedScript (verification, fully abstract compiler)
+  - verifying crypto protocols (relational variant)
+  - self-certification
+
+* {.fragment} Current version (1.0): ~10,000 LOC
+  - most of it mechanized metatheory proofs
+  - 2,000 LOC for System $F^\omega$ type soundness proof
+
+* {.fragment} miTLS (currently in F7): ~7,000 LOC
+  - port to F* ongoing, reducing annotations
+
+
+## Ongoing research on F* ## {#research}
+* Mechanized metatheory in F*
+  - F* as a proof assistant
+* Mechanized metatheory of F*
+  - towards self-certification
+* Probabilistic relational verification
+* Security and crypto: miTLS, ...
+* Verified compilation to x86 and JavaScript
+* Looking for students
+  - Paris, Cambridge, Redmond, Madrid, Saarbrucken
+
+
+# Course Organization #
+
+## Course Organization ## {#org}
+
+* 2 weeks: ~9:00-11:00 lecture + ~11:00-13:00 tutorial
+<!-- room? -->
+
+* {.fragment} Homework (first 6 days)
+  - individual, hands-on exercises in F*
+  - hand out 11:00am, hand in 9:00am next day, discussed in tutorial
+
+* {.fragment} Project (last 3 days)
+  - more interesting verification in F*, teams of 2-3 students
+
+* {.fragment} Grading: 2/3 homework, 1/3 project, attendance, no exam
+
+* {.fragment} Register on [Piazza] (everyone) & [HISPOS] (6 ECTS credits)
+
+* {.fragment} This will be 2 very intense weeks!
+
+
+[Piazza]: http://piazza.com/uni-saarland.de/winter2015/83997/home
+[HISPOS]: https://www.lsf.uni-saarland.de/qisserver/rds?state=verpublish&status=init&vmfile=no&publishid=83977&moduleCall=webInfo&publishConfFile=webInfo&publishSubDir=veranstaltung]
+
+
+## Schedule (week #1) ## {#week1}
+1. Introduction, basics
+   - verifying pure functional programs
+2. Purity, termination checking, simple effects
+   - pure, non-termination, exceptions
+3. State, Hoare logic, VCGen
+4. State, Predicate transformers
+5. Formalized metatheory in F*: STLC
+
+1-4 given by C&#259;t&#259;lin, 5 by Niklas
+
+
+## Schedule (week #2) ## {#week2}
+6. Metatheory in F*
+   - start discussing project topics
+7. Metatheory of $\mu$F*
+   - STLC + integers + simple state + recursion + termination check +
+   - kinds + subtyping + dependent types + predicate transformers
+8. Crypto in F*
+   - project starts
+9. Relational F*
+10. Working on project
+
+6-7 by C&#259;t&#259;lin, 8-9 by Matteo
+
+
+## Functional programming quiz?
+
+
+## Rest of today
+
+### A gentle introduction to F* basics ###
+
+## A gentle introduction to F* basics ## {#gentle}
+* Following part of the [F* tutorial] today
+  - Structure of a file, modules
+  - Pure, Tot, Lemma (stripped 2.2, on board)
+  - Function types (2.3, on board)
+  - Nat, Factorial, Fibonacci (3.2)
+  - Lemmas (3.3)
+  - Admit (3.4) + assert (nowhere unfortunately)
+  - Intrinsic vs. extrinsic proofs (4.2)
+  - Defining List (4.0)
+  - Append and mem (4.1)
+  - Map, Find (4.3)
+  - Discriminators and Projectors (4.4)
+
+[F* tutorial]: https://www.fstar-lang.org/tutorial/tutorial.html
+
+
+## Pure, Tot, Lemma, function types
+* done on board ([part 1](http://prosecco.gforge.inria.fr/personal/hritcu/talks/fstar-sb-2015/stuff/20150316_115904.jpg), [part 2](http://prosecco.gforge.inria.fr/personal/hritcu/talks/fstar-sb-2015/stuff/20150316_115930.jpg))
+* `Tot` and `Lemma` can be seen as abbreviations of `Pure`
+```
+Lemma t (requires r) (ensures e) = Pure unit (requires r) (ensures (fun _ -> e))
+Tot t = Pure (requires True) (ensures True)
+```
+
+
+
+## Homework
+
+Exercises 4a-4h in the tutorial
+
+reverse exercise (4d) and fold exercise (4f) optional
+- challenging, try them last!
+
+[Slides and homework link](http://prosecco.gforge.inria.fr/personal/hritcu/talks/fstar-sb-2015/)
+
+<!-- roughly walk through sections 1-4 of tutorial
+Not covering:
+- effects
+-->
+
+
+<!-- TODO
+- explain new exercise sheet?
+-->
+
+<!-- Including code from file
+~ Slide
+```
+[INCLUDE=../../code/arith.fst]
+```
+~
+-->

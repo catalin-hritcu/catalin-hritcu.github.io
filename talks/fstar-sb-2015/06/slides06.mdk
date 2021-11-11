@@ -1,0 +1,322 @@
+[INCLUDE=presentation]
+Title         : Type Systems for Security Verification
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../fstar
+Logo          : False
+Html Header   :
+    <script src="../script.js"></script>
+    <link rel="stylesheet" href="../style.css" id="custom_style">
+Package       : xypic
+Package       : semantic
+~Pre,~Code: language=fstar
+
+~ MathDefs
+[INCLUDE=../latex.tex]
+~
+
+# Formalized Metatheory in F* $\lambda^\omega$ #
+
+![fstar-logo]
+
+#### C&#259;t&#259;lin Hri&#355;cu (Inria Paris) ####
+
+Type Systems for Security Verification Lecture
+
+Saarland University
+
+Monday, 23 March 2015
+
+[fstar-logo]: ../img/fstar.png { width=200px }
+
+
+## Last Friday ##
+* Small-step reduction
+* Simple types
+  - arithmetic and boolean expressions; While language
+  - Simply Typed $\lambda$-calculus (STLC; call-by-value)
+* Style:
+  - named representation of terms
+  - everything pure and executable; extrinsic style proofs
+* Homework:
+  - extending STLC formalization with integers, let rec, pairs
+  - optional: subtyping (quite challenging in this style)
+
+
+## Today ##
+* Another formalization of STLC
+  - **strong reduction** (TAPL 5.1)
+  - **nameless representation of terms** (TAPL 6)
+  - **parallel substitution**
+* $\lambda^\omega$: **kinds and type-level computation** (TAPL 29 & 30)
+* Style:
+  - mixing executable code and **inductive relations**
+  - mixing extrinsic and **constructive style proofs**
+* Homework: extend STLC formalization
+  - with **subtyping** (TAPL 15) and **simple state** (While)
+  - bonus points: do real references (TAPL 13)
+  - extra bonus points: do any of these for $\lambda^\omega$
+
+## Strong reduction ##
+```html
+((fun x:t -> e1) e2) ~> e1[e2/x]  [S-Beta]
+
+e1 ~> e1'
+------------------- [S-App1]
+(e1 e2) ~> (e1' e2)
+
+e2 ~> e2'
+------------------- [S-App2]
+(e1 e2) ~> (e1 e2')
+
+e ~> e'
+--------------------------------- [S-Lam]
+(fun x:t -> e) ~> (fun x:t -> e')
+```
+non-deterministic (but confluent) evaluation strategy\
+(aka. full beta-reduction): any redex can reduce at any time
+
+## Substitution exercise ##
+![subst-ex]
+[subst-ex]:img/subst-ex.png
+
+## Nameless representation of terms ## {#db}
+* de Bruijn indices; following TAPL 6
+* $\lambda x.\,x = \lambda.\,0$
+* $\lambda x.\,\lambda y.\,x = \lambda.\,\lambda.\,1$
+* $\lambda x.\,\lambda y.\,x~(y~x) = \lambda.\,\lambda.\,1~(0~1)$
+* {.fragment} $\lambda x.\,\lambda y.\,x = ~?$
+* {.fragment} $\lambda x.\,\lambda y.\,(\lambda z.\,z~x)~y~x = ~?$
+
+## Substitution ##
+![subst](img/subst.png)
+
+## Shifting ##
+![shift](img/shift.png)
+
+![shift-ex]{.fragment}
+[shift-ex]:img/shift-ex.png
+
+## de Bruin substitution exercise ##
+* $[0 \mapsto 1](0~(\lambda.\,\lambda.\,2)) = (1~(\lambda.\,\lambda.\,3))$
+
+* {.fragment} $[0 \mapsto (1~(\lambda.\,2))](0~(\lambda.\,1)) = ~?$
+
+* {.fragment} $[0 \mapsto 1](0~(\lambda.\,0~2)) = ~?$
+
+* {.fragment} $[0 \mapsto 1](0~(\lambda.\,1~0)) = ~?$
+
+## Beta reduction ##
+![db-beta](img/db-beta.png)
+
+* $(\lambda.\,1~0~2)~(\lambda.\,0) \to 0~(\lambda.\,0)~1$
+
+* {.fragment} $(\lambda.\,(\lambda.\,0~1)~(\lambda.\,0~1)) \to ~?$
+
+## Formalization ##
+* [db_subst.fst](https://github.com/FStarLang/FStar/blob/master/examples/metatheory/db_subst.fst)
+
+## Parallel substitution ##
+* aka. multi-substitution
+* interesting termination argument
+* [stlc_strong_db_parsubst.fst](https://github.com/FStarLang/FStar/blob/master/examples/metatheory/stlc_strong_db_parsubst.fst)
+
+## $\lambda^\omega$: Type Operators and Kinds ##
+* following TAPL 29 & 30
+* we can see `(list t)` as an application
+  - and `list` as a type constructor
+* Type operators:
+  - `fun a : Type -> list a`
+  - `id = (fun a : Type -> a)`
+* Formally, we extend types with another $\lambda$-calculus:
+  - `t ::= t1 -> t2 | a | (fun a:k -> t) | t1 t2`
+
+## Primitive type operators in $\mu$F* ##
+```
+         and : Type -> Type -> Type
+          or : Type -> Type -> Type
+         not : Type -> Type
+        impl : Type -> Type -> Type
+      forall : a:Type -> (a -> Type) -> Type
+          eq : a:Type -> a -> a -> Type
+    precedes : a:Type -> a -> a -> Type
+        eq_k : a1:k -> a2:k -> Type
+    forall_k : (a:k -> Type) -> Type
+```
+
+## Predicate transformers (wp) ##
+~ Snippet
+\begin{small}
+\[
+\begin{array}{c}
+\inference[(T-Let)]
+  {\Gamma \vdash e_1 : M~t_1~wp_1 &
+   \Gamma,x:t_1 \vdash e_2 : M~t_2~wp_2 & 
+   x \not\in FV(t_2)}
+  {\Gamma \vdash \mbox{\it let}~x = e_1~\mbox{\it in}~e_2 : M~t_2~(M.\mbox{\it bind}~wp_1~(\mbox{\it fun}~x \rightarrow wp_2))}
+\end{array}
+\]
+\end{small}
+~
+```
+kind PURE.Pre = Type
+kind PURE.Post (a:Type) = a -> Type
+kind PURE.WP (a:Type) = Post a -> Pre
+type PURE.return (a:Type) (x:a) : PURE.WP a = fun p -> p x
+type PURE.bind (a:Type) (wp1:PURE.WP a) (wp2:a->PURE.WP b) : PURE.WP b =
+    fun p -> wp1 (fun x -> wp2 x p)
+```
+
+## Type-level computation ##
+* The following types are equivalent:
+  - `nat -> bool`
+  - `id nat -> bool`
+  - `nat -> id bool`
+  - `id (nat -> bool)`
+  - `id nat -> id bool`
+  - `id (id (id nat -> bool))`
+* Generally
+  - `((fun a : k -> t1) t2)` $\equiv$ `t1[t2/a]`
+* Type conversion rule
+  - $\inference[(T-Conv)]
+      {\Gamma \vdash e : t & t \equiv t'}
+      {\Gamma \vdash e : t'}$
+
+## Kinds ##
+* Lambdas and applications at type level can be bogus
+* Meaningless type expressions:
+  - `(bool nat)` doesn't make more sense than `(true 6)`
+* Kinds: "the types of types"
+* Simple kinds (STLC one level up)
+  - `k ::= Type | k1 -> k2`
+  - `Type`: (aka. "$*$") the kind of _proper_ types (like `bool`, `bool -> bool`)
+  - `Type -> Type`: type operators (like `list` and `id`)
+  - `Type -> Type -> Type`: two-argument type operators (like `and`)
+  - `(Type -> Type) -> Type`: higher-order operators (like `forall`)
+
+## Well-typed expressions assigned types ##
+![kinds0]
+[kinds0]:img/kinds0.png
+Functions get arrow types
+Non-sense expressions get no type
+
+## Type operators ##
+![kinds1]
+[kinds1]:img/kinds1.png
+
+## Proper types get kind Type ($*$) ##
+![kinds2]
+[kinds2]:img/kinds2.png
+
+## Type operators get arrow kinds ##
+![kinds3]
+[kinds3]:img/kinds3.png
+And non-sense types get no kind
+
+## Kinding rules (remember STLC?) ##
+```html
+    G |- ok
+    ------------- [K-Var]
+    G |- a : G(a)
+
+    G, a:k |- t : k'
+    --------------------------------- [K-Abs]
+    G |- (fun (a:k) -> t) : (k -> k')
+
+    G |- t1 : k -> k'    G |- t2 : k
+    -------------------------------- [K-App]
+    G |- t1 t2 : k'
+
+    G |- t1 : Type      G |- t2 : Type
+    ---------------------------------- [K-Arr]
+    G |- t1 -> t2 : Type
+```
+
+## Type equivalence (conversion) ##
+~ Begin Columns
+~ Column
+```html
+((fun a : k -> t1) t2) \($\equiv$\) t1[t2/a]  [Eq-Beta]
+
+t \($\equiv$\) t'
+-------------------------------- [Eq-Lam]
+(fun a:k -> t) \($\equiv$\) (fun a:k -> t')
+
+t1 \($\equiv$\) t1'   t2 \($\equiv$\) t2'
+--------------------- [Eq-App]
+(t1 t2) \($\equiv$\) (t1' t2')
+
+t1 \($\equiv$\) t1'   t2 \($\equiv$\) t2'
+--------------------- [Eq-Arr]
+(t1->t2) \($\equiv$\) (t1'->t2')
+```
+~
+~ Column
+```html
+t \($\equiv$\) t  [Eq-Refl]
+
+t \($\equiv$\) s
+----- [Eq-Symm]
+s \($\equiv$\) t
+
+t1 \($\equiv$\) t2    t2 \($\equiv$\) t3
+------------------- [Eq-Tran]
+t1 \($\equiv$\) t3
+```
+~
+~ End Columns
+
+## Typing rules for $\lambda^\omega$ ##
+~ Begin Columns
+~ Column
+```html
+G |- ok
+------------- [T-Var]
+G |- x : G(x)
+
+G, x:t |- e : t'    G |- t1 : Type
+---------------------------------- [T-Abs]
+G |- (fun (x:t) -> e) : (t -> t')
+
+G |- e1 : t -> t'    G |- e2 : t
+-------------------------------- [T-App]
+G |- e1 e2 : t'
+
+G |- e : t   t \($\equiv$\) t'
+------------------- [T-Conv]
+G |- e : t'
+```
+~
+~ Column
+```html
+. |- ok  [G-Empty]
+
+G |- t : Type    x not in dom G
+------------------------------- [G-Type]
+G, x:t |- ok
+
+a not in dom G
+-------------- [G-Kind]
+G, a:k |- ok
+```
+~
+~ End Columns
+$\lambda^\omega$ = STLC with type operators
+
+## Metatheory of $\lambda^\omega$ ##
+* [lambda_omega.fst](https://github.com/FStarLang/FStar/blob/master/examples/metatheory/lambda_omega.fst)
+
+
+## Projects ## {#projects}
+* How many people? How many teams?
+
+* Anyone who already found a potential topic?
+
+* We also have a long list of potential topics
+  - from which you can choose based on your interests
+
+<!-- TODO:
+- Would be nice to also do normalization here, missing formalization
+-->

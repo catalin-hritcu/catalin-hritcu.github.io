@@ -1,0 +1,122 @@
+[INCLUDE=presentation]
+Title         : From "Hoare Logic" to "Dijkstra Monads"
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../../stuff/fstar
+Logo          : False
+Html Header   :
+    <script src="../../stuff/script.js"></script>
+    <link rel="stylesheet" href="../../stuff/style.css" id="custom_style">
+Package       : xypic
+~Pre,~Code: language=fstar
+
+~ MathDefs
+[INCLUDE=../../stuff/latex.tex]
+~
+
+# From "Hoare Logic" to "Dijkstra Monads" #
+
+~Center
+[![fstar-logo]](https://www.fstar-lang.org)
+
+**[C&#259;t&#259;lin Hri&#355;cu, Inria Paris](http://prosecco.gforge.inria.fr/personal/hritcu/)**
+
+[MPRI 2-30](https://wikimpri.dptinfo.ens-cachan.fr/doku.php?id=cours:c-2-30), Paris, Friday, 27 January 2017
+~
+
+[fstar-logo]: ../../stuff/fstar-new.png { width=200px }
+
+## Today: verifying stateful programs ##
+
+- Verifying stateful programs in a *functional language*
+
+- Looking a bit behind the F\* curtain
+
+- Hoare-style specifications
+  + inspired by Hoare Type Theory / Ynot
+
+- Computing weakest preconditions
+  + inspired by Dijkstra Monads in F*
+  + monads of predicate transformers
+
+## [core.org](../../core.org) ##
+
+- A core syntax inspired by (Micro-)F*
+- Aimed at teaching verification of stateful programs
+- 2 variants:
+  + Hoare style
+  + Weakest precondition style
+
+## Verifying stateful programs ##
+
+## Imperative factorial ##
+```
+val factorial_tot : nat -> Tot nat
+let rec factorial_tot x = if x = 0 then 1 else x * factorial_tot (x - 1)
+
+(* TODO: write a stronger ensures clause for factorial that proves
+         it does the same thing as factorial_tot *)
+val factorial : r1:ref nat -> r2:ref nat -> ST unit
+      (requires (fun h' -> True))
+      (ensures (fun h' a h -> True))
+let rec factorial r1 r2 =
+  let x1 = !r1 in
+  if x1 = 0
+  then r2 := 1
+  else 
+    (r1 := x1 - 1;
+     factorial r1 r2;
+     r2 := !r2 * x1)
+```
+
+## Monotonic log ##
+```
+(* global log of integers *)
+val log : ref (list int)
+let log = alloc []
+
+val add_to_log : e:int -> ST unit
+  (requires (fun h0 -> True))
+  (ensures (fun h0 _ h1 ->
+        mem e (sel h1 log) (* p1: new element added *)
+    /\ (forall x. mem x (sel h0 log) ==> mem x (sel h1 log))
+                            (* p2: all old elements preserved *)
+  ))
+let add_to_log e =
+  log := (e :: !log)
+
+let main =
+  add_to_log 1;
+  let log1 = !log in
+  assert (mem 1 log1); (* proved by p1 *)
+  add_to_log 2;
+  let log2 = !log in
+  assert (mem 2 log2  (* proved by p1 *)
+       /\ mem 1 log2) (* proved by p2! *)
+```
+
+## More basic materials: Software Foundations ##
+
+- [Hoare Logic: Assertions, Hoare Triples, Proof Rules](https://www.cis.upenn.edu/~bcpierce/sf/current/Hoare.html)
+
+- [Hoare Logic 2: Decorated Programs, Loop Invariants, Weakest Preconditions](https://www.cis.upenn.edu/~bcpierce/sf/current/Hoare2.html)
+
+- [Weakest preconditions for While in F*](https://github.com/FStarLang/FStar/blob/8304b631126969d0656587fb84a5ceaf33d912cb/examples/metatheory/HoareWeakestPrecondition.fst)
+
+## More in depth reading about F* ##
+
+- [Dependent Types and Multi-Monadic Effects in F*. POPL 2016.](https://www.fstar-lang.org/papers/mumon/)
+
+- [Dijkstra Monads for Free. POPL 2017.](https://www.fstar-lang.org/papers/dm4free/)
+
+- [Verified Low-Level Programming Embedded in F*. Under Submission.](https://jonathan.protzenko.fr/papers/submission1-2017.pdf)
+
+## Next steps ##
+
+* in 1-2 weeks: Verifying Crypto Implementations in F* (Karthik)
+
+* February 17: revisions
+
+* March 3: exam (material from 2nd half of the course)

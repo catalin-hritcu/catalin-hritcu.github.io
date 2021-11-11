@@ -1,0 +1,302 @@
+[INCLUDE=presentation]
+Title         : Verified Effectful Programming in F*
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../stuff/fstarlang
+Logo          : False
+Html Header   :
+    <script src="../stuff/script.js"></script>
+    <link rel="stylesheet" href="../stuff/style.css" id="custom_style">
+Package       : xypic
+~Pre,~Code: language=fstarlang
+
+~ MathDefs
+[INCLUDE=../stuff/latex.tex]
+~
+
+# What's new in F\*? #
+
+~Center
+[![fstar-logo]](https://www.fstar-lang.org)
+
+**[C&#259;t&#259;lin Hri&#355;cu, Inria Paris](http://prosecco.gforge.inria.fr/personal/hritcu/)**
+
+Everest Workshop
+
+Inria Paris, 2 October 2017
+~
+
+[fstar-logo]: ../stuff/fstar-new.png { width=200px }
+
+<!------------------------------------------------------------------------------>
+
+~Slide
+~~Center
+![3-en-1](../stuff/3-en-1.jpg){ width=50% }
+~~
+~
+
+<!------------------------------------------------------------------------------>
+
+## F\*: produit 3 en 1 ##
+
+<!-- General-purpose -->
+1. **[Functional programming language with effects]{color:Black;}**
+  - extracted to OCaml or F\#
+  - [subset compiled to efficient C code](https://github.com/FStarLang/kremlin){color:Black;}
+  - F\* is programmed in F\*, but not (yet) verified
+
+2. {.fragment} **[Semi-automated verification system using SMT]{color:DarkBlue;}**
+  - **[Project Everest](https://project-everest.github.io/)** ([miTLS\*](https://github.com/mitls/mitls-fstar), [HACL\*](https://github.com/mitls/hacl-star), [Vale](https://github.com/project-everest/vale), ...)
+
+3. {.fragment} **[Interactive proof assistant based on dependent types]{color:DarkRed;}**
+  - fallback when SMT fails
+  - mechanized metatheory ([MicroFStar](https://github.com/FStarLang/FStar/blob/stratified_last/examples/metatheory/MicroFStar.fst), [Wys*](http://research.microsoft.com/en-us/um/people/nswamy/papers/wys.pdf), [ReVer](https://github.com/msr-quarc/ReVerC))
+
+<!------------------------------------------------------------------------------>
+
+# The current F\* team #
+
+~Center
+[**Microsoft Research, Inria Paris, MIT, Rosario, ...**]{color:DarkGreen;}
+~
+
+<!-- {font-size:xx-large} -->
+
+~Columns
+~~ Column {width 50%}
+- Danel Ahman
+- Benjamin Beurdouche
+- Karthikeyan Bhargavan
+- Tej Chajed
+- Antoine Delignat-Lavaud
+- Victor Dumitrescu
+- Cédric Fournet
+- Armaël Guéneau
+- Cătălin Hriţcu
+- Samin Ishtiaq
+- Markulf Kohlweiss
+~~
+~~ Column {width 50%}
+- Qunyan Mangus
+- Kenji Maillard
+- Guido Martínez
+- Clément Pit-Claudel
+- Jonathan Protzenko
+- Tahina Ramananandro
+- Aseem Rastogi
+- **[Nikhil Swamy (benevolent dictator)]{color:DarkGreen}**
+- Christoph M. Wintersteiger
+- Santiago Zanella-Béguelin
+- Jean-Karim Zinzindohoué
+~~
+~
+
+<!------------------------------------------------------------------------------>
+
+~Slide
+~~Center
+![fstar-v0.9.5](../stuff/fstar-v0.9.5.png){ heigth=50% }
+~~
+~
+
+<!------------------------------------------------------------------------------>
+
+~Slide
+~~Center
+![fstar-v0.9.4](../stuff/fstar-v0.9.4.png){ heigth=50% }
+~~
+~
+
+<!------------------------------------------------------------------------------>
+
+## Functional core of F\* ## {#fcore}
+
+* **[Variant of dependent type theory]{color:DarkBlue}**
+  - $\lambda$, $\Pi$, inductives, matches, universe polymorphism
+
+* {.fragment} **[Recursion and semantic termination check]{color:DarkRed}**
+  - potential non-termination is an effect
+
+* {.fragment} **[Refinements]{color:DarkRed}**
+  - **Refined value types**: `x:t{p}`
+  - **Refined computation types**: `Pure t pre post`
+  - computationally and proof irrelevant, discharged by SMT
+
+* {.fragment} **[Subtyping and sub-effecting]{color:DarkRed}**, **[Extensional equality]{color:DarkRed}**
+
+<!------------------------------------------------------------------------------>
+
+## Monadic effects in F\* ##
+
+<!-- Effects defined using monads from total functions -->
+```
+type st (mem:Type) (a:Type) = mem -> Tot (a * mem)
+```
+
+~Fragment
+```
+total reifiable new_effect {
+ STATE_m (mem:Type) : a:Type -> Effect
+ with repr = st mem;
+      return = fun (a:Type) (x:a) (m:mem) -> x, m;
+      bind = fun (a b:Type) (f:st mem a) (g:a -> st mem b) (m:mem) ->
+             let z, m' = f m in g z m';
+      get = fun () (m:mem) -> m, m;
+      put = fun (m:mem) _ -> (), m  }
+```
+```
+total reifiable new_effect STATE = STATE_m heap
+```
+~
+
+* {.fragment} this monadic definition is the **model** F\*  uses to verify stateful code
+* {.fragment} state can be **primitively implemented** under the hood **or not**
+  - for instance by ML heap or C stack+heap
+
+## Verifying effectful programs ## {#effect1}
+### Usual way: intrinsically (using refinements at definition time) ###
+
+* {.fragment} Hoare logic style pre- and post-conditions
+
+  ```
+  let incr () : ST unit (requires (fun n0 -> True))
+                        (ensures (fun n0 _ n1 -> n1 = n0 + 1))
+        = let n = STATE.get() in STATE.put (n + 1)
+  ```
+
+* {.fragment} Pre- and post- conditions are just syntactic sugar for WPs
+  - **WPs computed generically for all effects**
+  - relies on a **monad on predicate transformers** (Dijkstra monad)
+  - we now obtain this for free by **selective CPS-ing effect definition**
+
+    ```
+    STATE.repr t = mem -> t * mem
+    STATE.wp t  ~= mem -> (t * mem -> Type0) -> Type0
+    ```
+
+<!------------------------------------------------------------------------------>
+
+## Verifying effectful programs ## {#effect2}
+### New way: extrinsically (by exposing pure monadic representation) ###
+
+* {.fragment} Monadic reification
+    ```
+    STATE.reify : (St a) -> Ghost (nat -> Tot (a * nat))
+    ```
+
+* {.fragment} Allows us to give **weak specification** to an effectful function
+  ```
+    let incr () : St unit = let n = STATE.get() in STATE.put (n + 1)
+  ```
+
+* {.fragment} and **prove lemmas about reification** of effectful computation
+  ```
+    let incr_works (n:nat) : Lemma (snd (STATE.reify (incr()) n) = n + 1) = ()
+  ```
+
+* {.fragment} Reduces "relational" effectful verification to pure verification
+  <!-- - ... for which F\* already has good support (e.g. SMT automation) -->
+
+<!------------------------------------------------------------------------------>
+
+## Tactics (New, Experimental) ##
+
+* F\* tactics written as **effectful F\* code** (inspired by Lean, Idris)
+
+* have **access to F\*'s proof state** (and can efficiently roll it back)
+
+* can **introspect on F\* terms** (deep embedding, simply typed)
+
+* can be **[interpreted]{color:DarkRed}** by F\*'s normalizer or **[compiled to OCaml]{color:DarkGreen}**
+
+* {.fragment} **user-defined, non-primitive effect**: proof state + exceptions monad
+
+    ```
+    noeq type __result a =
+        | Success of a * proofstate
+        | Failed  of string    //error message
+                  * proofstate //the proofstate at time of failure
+
+    let __tac (a:Type) = proofstate -> Tot (__result a)
+
+    reifiable reflectable new_effect {
+      TAC : a:Type -> Effect
+      with repr     = __tac   ... }
+
+    let tactic (a:Type) = unit -> Tac a
+    ```
+
+<!------------------------------------------------------------------------------>
+
+## Tactics can discharge SMT obligations ##
+
+~Center
+![tactics-assert_by_tactic]
+~
+[tactics-assert_by_tactic]: ../stuff/tactics-assert_by_tactic.png { heigth=50% }
+
+<!------------------------------------------------------------------------------>
+
+## Tactics can massage SMT obligations ##
+
+~Center
+![tactics-canon]
+~
+[tactics-canon]: ../stuff/tactics-canon.png { heigth=50% }
+
+<!------------------------------------------------------------------------------>
+
+## Tactics can synthesize F\* terms (metaprogramming) ##
+
+~Center
+![tactics-synth_by_tactic]
+~
+[tactics-synth_by_tactic]: ../stuff/tactics-synth_by_tactic.png { heigth=50% }
+
+<!------------------------------------------------------------------------------>
+
+## Early uses of tactics (proof automation) ##
+
+* **Arithmetic expression canonizer** (Guido)
+
+* **Bitvectors in Vale** (Nick G, Nik S, and Chris H)
+
+* **Separation logic** (Monal and Aseem, ongoing)
+
+* **Pattern matcher** (Clément, ongoing)
+
+* {.fragment} **[upcoming case studies]{color:DarkBlue}** will probably include:
+  - turn F\* sequence code to Low\* buffer code (metaprogramming)
+  - generate code for inductives: pretty printers, ... (metaprogramming)
+  - metatheory of subsets of F\* (interactive proofs)
+
+<!------------------------------------------------------------------------------>
+
+## Some dreams and ongoing work on F\* ##
+
+* **[Improve tactics]{color:DarkBlue;}**, balance automation and control
+
+* {.fragment} **[Better treatment of effects]{color:DarkBlue;}**: Dijkstra monads for free v2
+
+* {.fragment} **[Studying more effects]{color:DarkBlue;}**: probabilities, concurrency, ...
+
+* {.fragment} **[Effect masking]{color:DarkBlue;}**: hiding exceptions, state, divergence(!?), ...
+
+* {.fragment} **[Verified interoperability]{color:DarkBlue;}**: F\* (OCaml) + Low\* (C) + Vale (ASM) 
+
+* {.fragment} **[Further work out metatheory]{color:DarkBlue;}** and **[self-certify core type-checker]{color:DarkBlue;}**
+  - **monadic reification + monotonic state** and **relation to modal logic**
+  - soundly allowing **depth subtyping for datatypes**
+
+* {.fragment} **[Join the team at Inria Paris and Microsoft Research]{color:DarkRed;}**
+
+<!------------------------------------------------------------------------------>
+
+## It will be a long journey, [but we've already done 2/3 of the way]{color:DarkRed} ##
+
+~Center
+![66-percent-there](../stuff/66-percent-there.png){ width=100% }
+~

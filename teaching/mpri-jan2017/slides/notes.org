@@ -1,0 +1,110 @@
+
+* Course #1
+
+subtyping
+- add one slide ... some simple examples, no function subtyping(!)
+
+effects and sub-effecting (2.2)
+- could expand the discussion and talk about the various primitive effects in F\*
+
+Exercises from tutorial to do in class
+- all from section 3? there are just 3 and I did 1, the other is very simiar
+- 3.3. Lemmas and 3.4. Admit -- extrinsic style
+  + factorial_is_positive
+  + factorial_is_greater_than_arg
+  + exercise: fibonacci_greater_than_arg
+
+* Course #2
+
+more interesting purely functional example: lists
+- abstract instead of interfaces (Done)
+- section 4, programming with lists (Done)
+- binary search trees (TODO)
+- sorting, simpler first, up to quicksort? (TODO)
+
+verifying stateful code
+* Course #4: unsatisfactory paper proofs
+
+I'm still very curious though whether there is any way to define a
+Hoare-style logic that's better suitable for paper proofs of little F*
+programs. It's very disappointing to take 3 line programs (like swap)
+that have a 4 line proofs in Hoare logic and to see that using the two
+systems in core.org the proofs are huge and already at the limit of
+what one can do on paper. I'm still wondering whether there is any way
+to phrase T-Let so that it works bottom up (like the sequence rule in
+Hoare logic) instead of top-down and whether that is more natural for
+paper proofs. And if that's not possible or much better, whether one
+has to abandon two-heap post-condition in favor of some notion of
+"auxiliary variables" (i.e. the Hoare-logic style of relating the
+heaps in pre and post-conditions).
+
+Anyway, if any of you has any ideas for a better way to verify tiny F*
+programs on paper please let me know, since this is probably not the
+last time I'll try to do this in class :)
+* Exam prep
+
+- Explain the difference between:
+  + x:a{px} -> y:b{pxy} and x:a -> y:b{px ==> pxy}
+- FactorialTot
+- AbstractStack
+- StatefulStack -- TODO: finish this
+- BinaryTrees
+
+** Verifying pure code (courses 1-2)
+
+Simple things can easily be done on paper,
+even in terms of Dafny-style lemmas
+
+Can you find other types/specs for X?
+- interesting, but too open to grade,
+  need to require at least *different* types
+
+Termination:
+- how about giving this weak type to factorial?
+  val factorial : int -> Tot int
+  + asking them to find precondition (refinement)
+- didn't do much more in class
+
+
+Refinement types, type abstraction
+- refined stacks -- pick some other data structure:
+  queues, priority queues, sets, naturals, bags, etc.
+- basically a simple abstract data type whose
+  operations are not all total
+
+Dafny-style lemmas (numbers, lists, trees)
+- numbers: ...
+- lists: map, fold, ...
+- trees: find, all, fold
+
+Insertion Sort -- magic automation, not good
+Binary Search Trees -- complex without a computer
+
+F* tutorial (https://​www.​fstar-​lang.​org/​tutorial/​)
+
+** Specifying stateful code (courses 2-4)
+
+Won't be able to do verification on paper,
+but could do a lot with specs already.
+
+Examples: swap (2 ways), factorial
+- could do: fibbonaci, stuff involving lists?
+
+Remind them at least the types of (!) and (:=)
+file:///home/hritcu/Projects/fstar/priv/courses/mpri-jan2017/slides/out/01/slides01.html#/sec-heap-operations-simplified
+
+
+
+
+
+* Exam
+- AbstractQueue; still have Bags and Sets for next year:
+http://www.cs.uofs.edu/~mccloske/courses/se507/alg_specs_lec.html
+- ListCount
+- Something stateful? where they have to reason about sel and upd
+  + sum_up, sum_dn?
+* Merkle hash trees
+
+hashes (and signatures?)
+
+anything in saarbrucken? showed something to iulia, right?

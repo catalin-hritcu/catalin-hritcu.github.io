@@ -1,0 +1,387 @@
+[INCLUDE=presentation]
+Title         : Type Systems for Security Verification
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../fstar
+Logo          : False
+Html Header   :
+    <script src="../script.js"></script>
+    <link rel="stylesheet" href="../style.css" id="custom_style">
+Package       : xypic
+Package       : semantic
+~Pre,~Code: language=fstar
+
+~ MathDefs
+[INCLUDE=../latex.tex]
+~
+
+# Effectful Verification with the Dijkstra monad #
+
+![fstar-logo]
+
+#### C&#259;t&#259;lin Hri&#355;cu (Inria Paris) ####
+
+Type Systems for Security Verification Lecture
+
+Saarland University
+
+Thursday, 19 March 2015
+
+[fstar-logo]: ../img/fstar.png { width=200px }
+
+
+## Another look at wlp for While ##
+
+## Swap ## {#swap-wlp}
+```
+  wlp (Z:=X; X:=Y; Y:=Z) (X=y /\ Y=x)
+= wlp (Z:=X; X:=Y)       (X=y /\ Z=x)
+= wlp (Z:=X)             (Y=y /\ Z=x)
+=                        (Y=y /\ X=x)
+```
+
+## Max ## {#max-wlp}
+```
+  wlp (if X < Y then Z:=Y else Z:=X) ((Z=X \/ Z=Y) /\ Z>=X /\ Z>=Y)
+
+= if (X<Y) then wlp (Z:=Y) ((Z=X \/ Z=Y) /\ Z>=X /\ Z>=Y)
+           else wlp (Z:=X) ((Z=X \/ Z=Y) /\ Z>=X /\ Z>=Y)
+ 
+= if (X<Y) then ((Y=X \/ Y=Y) /\ Y>=X /\ Y>=Y)
+           else ((X=X \/ X=Y) /\ X>=X /\ X>=Y)
+```
+
+
+## Reduce to Zero ##
+```
+wlp (WHILE X ≠ 0 DO X ::= X - 1 END) (X = 0)
+= if X != 0 then wlp (X ::= X - 1) True else (X = 0)
+= wlp (X ::= X - 1) True
+= True
+```
+
+## Finding Square Roots ##
+```
+      { X=m }  ⇾
+      { X=m ∧ 0×0 ≤ m }
+    Z ::= 0;
+      { X=m ∧ Z×Z ≤ m }
+    while (Z+1)*(Z+1) ≤ X do
+        { X=m ∧ Z×Z≤m ∧ (Z+1)*(Z+1)≤X }  ⇾
+        { X=m ∧ (Z+1)*(Z+1)≤m }
+      Z ::= Z+1
+        { X=m ∧ Z×Z≤m }
+    end
+      { X=m ∧ Z×Z≤m ∧ X<(Z+1)*(Z+1) }  ⇾
+      { Z×Z≤m ∧ m<(Z+1)*(Z+1) }
+```
+Homework - 1p
+
+<!-- here is a wrong attempt done during the class:
+wlp (Z ::= 0;
+    WHILE (Z+1)*(Z+1) ≤ X DO
+      Z ::= Z+1
+    END inv X=m ∧ Z×Z≤m)     { Z×Z≤m ∧ m<(Z+1)*(Z+1) }
+=
+m=m ∧ Z×Z≤m /\ if (Z+1)*(Z+1) ≤ m then wlp (Z ::= Z+1) (m=m ∧ Z×Z≤m)
+                                  else m<(Z+1)*(Z+1)
+=
+Z×Z≤m /\ if (Z+1)*(Z+1) ≤ m then wlp (Z ::= Z+1) (m=m ∧ Z×Z≤m)
+                            else m<(Z+1)*(Z+1)
+=
+ZxZ <= m /\ ((Z+1)*(Z+1) ≤ m ==> wlp (Z ::= Z+1) (m=m ∧ Z×Z≤m))
+=
+ZxZ <= m /\ ((Z+1)*(Z+1) ≤ m ==> (Z+1)×(Z+1)≤m)
+=
+ZxZ <= m
+
+-->
+
+## Wrap up: we want both! ##
+* Hoare logic
+  - great for specification and manual verification
+  - exploits human intuition, but does not scale
+* Weakest precondition (aka. predicate transformers)
+  - great for scaling up to interesting code
+  - exploits computation and automatic theorem proving (SMT)
+  - lots of tools based on this: Dafny, Boogie, Frama-C, Spec#, VCC, Why3
+  - all of them for imperative programming languages
+
+
+### Goal: extend this to verifying effectful functional programs ###
+
+
+## Why is this hard? ## {#hard}
+### Why are effectful functional programs trickier to verify than programs in While or C? ###
+* expressions can both perform side-effects and return results
+* higher-order functions
+* higher-order state (functions in the heap)
+* effects often interact badly with fancy types:
+  - polymorphism (ML value restrictions story)
+  - dependent types, abstract types, etc.
+
+
+## Dijkstra monad ##
+* weakest preconditions for effectful functional programs
+  - generic algorithm that works for all effects of F* (integrated with typing)
+* works well with higher-order features and fancy types
+* intuitive Hoare-like specs (`Pure`, `Div`, `Exn`, `St`, `All`)
+* automation that scales well in practice
+* produces simple, first-order VCs that work well with SMT
+
+
+## Lattice of effects ## {#lattice}
+* Customizable; the default one:
+  - `M ::= PURE | DIV | EXN | STATE | ALL`
+* {.fragment} `M` parameterized by type and predicate transformer (`M t wp`)
+  - shape of the `wp` depends on the effect: `PURE` simple, `ALL` complex
+  - type of `wp` depends on `t`: `M.WP t = M.Post -> M.Pre`\
+  ![wp-types]
+  [wp-types]: img/effects.png
+
+
+## Desugaring what we know and love ## {#desugar}
+```
+Pure  a (requires pre) (ensures post) =
+PURE  a (fun p -> pre /\ forall x. post x ==> p x)
+
+Exn   a (requires pre) (ensures post) =
+EXN   a (fun p -> pre /\ forall x. post x ==> p x)
+
+St    a (requires pre) (ensures post) =
+STATE a (fun p h0 -> pre h0 /\ forall x h1. post h0 x h1 ==> p x h1)
+
+All   a (requires pre) (ensures post) =
+ALL   a (fun p h0 -> pre h0 /\ forall x h1. post h0 x h1 ==> p x h1)
+```
+
+<!--
+* {.fragment} For `St` and `All`
+  - we are turning `(post : heap -> F a -> heap -> Type)`
+  - into `(p : F a -> heap -> Type)`, which is simpler
+TODO: not sure I understand the intuition of this last simplification
+TODO: in the lecture we understood this better by also unfolding
+      the definition of read (quite a bit later)
+-->
+
+## PURE ## {#pure}
+* `(e : PURE t wp)` if forall `(p:PURE.Post)` for which `(wp p)` holds we have
+  that `e` evaluates `(v:t)` for which `(p v)` holds
+```
+PURE.Pre = Type
+PURE.Post (a:Type) = a -> Type
+PURE.WP (a:Type) = Post a -> Pre
+```
+* {.fragment} For example:
+```
+val factorial: x:int -> Pure int (requires (x >= 0)) (ensures (fun y -> y>=1))
+```
+```
+val factorial: x:int -> PURE int (fun p -> x>=0 /\ forall y. y>=1 ==> p y)
+```
+  - this reads as follows: forall `p:PURE.Post int` for which `(x >= 0 /\
+    forall y. y>=1 ==> p y)` holds we have that `(factorial x)`
+    evaluates to a value `(v:int)` for which `(p v)` holds
+
+
+## STATE ## {#state}
+
+* `(STATE t wp)` is the type of a computation which, when run in heap
+  `h0` for which `(wp p h0)` is valid (for any `p : STATE.Post`),
+   may _**read**_ or _**write**_ the state, and
+  _**diverges**_ or returns a value `(v:t)` in heap `h1` satisfying
+  `(p v h1)`.
+
+* {.fragment} The `STATE` effect
+```
+kind Pre = heap -> Type
+kind Post (a:Type) = a -> heap -> Type
+kind WP   (a:Type) = Post a -> Pre
+```
+
+
+## Let rule, monads ## {#monads}
+~ Snippet
+\begin{small}
+\[
+\begin{array}{c}
+\inference[(T-Let)]
+  {\Gamma \vdash e_1 : M~t_1~wp_1 &
+   \Gamma,x:t_1 \vdash e_2 : M~t_2~wp_2 & 
+   x \not\in FV(t_2)}
+  {\Gamma \vdash \mbox{\it let}~x = e_1~\mbox{\it in}~e_2 : M~t_2~(M.\mbox{\it bind}~wp_1~(\mbox{\it fun}~x \rightarrow wp_2))}
+\end{array}
+\]
+\end{small}
+~
+```
+type return (a:Type) (x:a) : PURE.WP a = fun p -> p x
+type bind (a:Type) (wp1:PURE.WP a) (wp2:a->PURE.WP b) : PURE.WP b =
+    fun p -> wp1 (fun x -> wp2 x p)
+```
+* Note: effects are primitive, monads only at specification level
+
+
+## Monad for STATE ##
+* `STATE` (looks the same because of partial application)
+```
+type return (a:Type) (x:a) : STATE.WP a = fun p -> p x
+type bind (a:Type) (wp1:STATE.WP a) (wp2:a->STATE.WP b) : STATE.WP b =
+    fun p -> wp1 (fun x -> wp2 x p)
+```
+* {.fragment} without partial application:
+```
+type return (a:Type) (x:a) : STATE.WP a = fun p h -> p x h
+type bind (a:Type) (wp1:STATE.WP a) (wp2:a->STATE.WP b) : STATE.WP b =
+    fun p h -> wp1 (fun x h' -> wp2 x p h') h
+```
+
+
+## Specifying effectful primitives ## {#primitives}
+* Using predicate transformers
+```
+assume val read: r:ref int -> STATE int (fun p h -> p (sel h r) h)
+assume val write: r:ref int -> v:int -> STATE unit (fun p h -> p () (upd h r v))
+```
+
+* {.fragment} or Hoare triples
+```
+assume val read: r:ref int -> St int (requires (fun h -> True))
+                                     (ensures (fun h x h' -> h=h' /\ x=sel h r))
+assume val write: r:ref int -> v:int -> St unit (requires (fun h -> True)
+                                          (ensures (fun h x h' -> h'=upd h r v))
+```
+* {.fragment}[Worked out equivalence between the two for read in txt file](http://prosecco.gforge.inria.fr/personal/hritcu/talks/fstar-sb-2015/04/read.txt)
+
+
+<!-- already explained this last tutorial
+* where, we model `heap` as a map, using the functions:
+```
+val sel: heap -> ref int -> Tot int
+val upd: heap -> ref int -> int -> Tot heap
+assume forall h x v. sel (upd h x v) x = v
+assume forall h x y v. x<>y ==> sel (upd h x v) y = sel h y
+```
+-->
+
+
+## Swap in detail ## {#swap}
+
+```
+val swap : #a:Type -> r1:ref a -> r2:ref a -> St unit
+      (requires (fun h' -> contains h' r1 /\ contains h' r2))
+      (ensures (fun h' _ h ->
+                  let x1 = sel h' r1 in
+                  let x2 = sel h' r2 in
+                  equal h (upd (upd h' r1 x2) r2 x1)))
+let swap r1 r2 =
+  let tmp = read r1 in
+  let _   = write r1 (read r2) in
+  write r2 tmp
+```
+
+[Worked out in full detail in txt file](http://prosecco.gforge.inria.fr/personal/hritcu/talks/fstar-sb-2015/04/swap.txt)
+
+
+## Other possible simple examples ## {#more-ex}
+* factorial (pure)
+```
+val factorial n = if n <= 1 then 1 else n * (factorial (n-1))
+```
+* increment (assignment)
+```
+let incr r = r := !r + 1
+```
+* max (if-then-else)
+```
+if !r1 < !r2 then r := !r2 else r := !r1
+```
+* twice (higher-order)
+```
+val twice: a b wp f:(x:a -> STATE b (wp x)) -> y:a
+         -> STATE b (fun p. wp y (fun x. wp y p))
+let twice f x = f (f x)
+```
+
+<!-- did this already
+* swap (assignment + let)
+```
+let swap r1 r2 = let tmp = !r1 in r1 := !r2; r2 := !r1
+```
+-->
+
+
+## Typing rule for if-then-else ## {#if}
+~ Snippet
+\begin{small}
+\[
+\begin{array}{c}
+\inference[(T-If)]{\Gamma \vdash e_1 : M~\mbox{\it bool}~wp_1 \\
+           \Gamma \vdash e_2 : M~t~wp_2 &
+           \Gamma \vdash e_3 : M~t~wp_3}
+         {\Gamma \vdash \mbox{\it if}~e_1~\mbox{\it then}~e_2~\mbox{\it else}~e_3 : M.ite~t~wp_1~wp_2~wp_3}
+\end{array}
+\]
+\end{small}
+~
+```
+M.ite : #a:Type -> M.WP(int) -> M.WP(a) -> M.WP(a) -> M.WP(a)
+M.ite a wp0 wp1 wp2 = M.bind wp0 (fun b -> (M.up      b  ==>_M wp1) /\_M
+                                           (M.up (not b) ==>_M wp2))
+PURE.up  a t p   = t
+STATE.up a t p h = t
+```
+
+## Typing rule for function applications ## {#app}
+
+~ Snippet
+\begin{scriptsize}
+\[
+\begin{array}{c}
+\inference{\Gamma \vdash e_1 : M~(x:t \rightarrow M~t'~wp)~wp_1\\
+           \Gamma \vdash e_2 : M~t~wp_2 & \Gamma |- t'[e_2/x] : Type}
+          {\Gamma \vdash e_1~e_2 : M~(t'[e_2/x])~(M.\mathit{bind}~wp_1~(\mathit{fun}~f \rightarrow M.\mathit{bind}~wp_2~(\mathit{fun}~x \rightarrow wp)))}
+\end{array}
+\]
+\end{scriptsize}
+~
+
+
+## Lifting / sub-effecting ##
+
+* Sub-effects: Lifting `PURE` to `STATE`
+```
+   type lift : a:Type -> PURE.WP a -> STATE.WP a =
+     fun (a:Type) (wp:PURE.WP a) (p:STATE.Post a) (h:heap) -> wp (fun x -> p x h)
+```
+
+## References
+
+[Semantic Purity and Effects Reunited in F*](https://www.fstar-lang.org/papers/icfp2015/) (Draft, March 2015)
+
+[Verifying Higher-order Programs with the Dijkstra Monad](http://research.microsoft.com/en-us/um/people/nswamy/papers/dijkstra-submitted-pldi13.pdf) (PLDI'13)
+
+[Hoare Type Theory, Polymorphism and Separation](http://ynot.cs.harvard.edu/papers/jfpsep07.pdf) (JFP'07)
+
+There's lots of interesting things I didn't cover
+
+
+## Homework ##
+* Square roots wlp - 1p
+* Stateful ACLs (sections 1 and 8.1 in tutorial, ex 8a) - 1p
+* Pure insertion sorting for ints - 2p
+* Pure insertion sorting for anything - 2p
+* Optional: pure merge sort - 2p
+
+
+<!-- TODO: this lecture was quite bad, need to improve a lot;
+still I've learned a lot of things :)
+Improvements:
+- STLC *before* Dijkstra!
+- show if before let
+- solve square-roots correctly in the course
+- (type-level) computation also appears for While wlp?
+  just that in the meta language?
+-->

@@ -1,0 +1,119 @@
+<html>
+<head>
+<title>Writing and Verifying Functional Programs in Coq</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link REL=STYLESHEET TYPE="text/css" href="danel.css">
+</head>
+<body>
+<h1>Writing and Verifying Functional Programs in Coq</h1>
+
+<p>Course at <a href="http://www.mathinfoly.org/" target="_blank">Summer School
+on Cryptography, Blockchain, and Program Verification, Mathinfoly 2019</a>
+at INSA, Lyon on 27-31 August 2019</p>
+
+<p><b>Teaching team</b>: <a href="http://prosecco.gforge.inria.fr/personal/hritcu/">Cătălin Hriţcu</a>,
+<a href="https://robblanco.github.io/">Roberto Blanco</a>,
+<a href="https://github.com/floriangru">Florian Groult</a>,
+<a href="http://perso.eleves.ens-rennes.fr/people/Jeremy.Thibault/">Jérémy Thibault</a>,
+<a href="https://dcc.fceia.unr.edu.ar/~erivas/">Exequiel Rivas</a>,
+and various local helpers.
+</p>
+
+<h2 id="abstract">Abstract</h2>
+
+<p>
+This course will give a gentle introduction to:
+1. logic and proofs,
+2. functional programming, and
+3. program verification.
+
+The most interesting aspect of this course is the use of the
+<a href="https://coq.inria.fr">Coq proof assistant</a>
+ to write functional programs and to prove logical
+theorems about these programs, in a way that is one hundred percent formalized
+and machine-checked. The course will follow the 1st half of the
+Logical Foundations book
+(i.e., Volume 1 of the <a href="https://softwarefoundations.cis.upenn.edu">
+Software Foundations</a> series). The students will learn the most by
+solving Coq exercises, from very simple to more interesting ones. The course
+will also give an overview of the practical successes of functional programming
+(e.g., the Tezos blockchain implementation is written in OCaml) and of
+verification in proof assistants like Coq (from machine-checked proofs of
+mathematical results such as the 4-color theorem to the CompCert verified
+compiler). We will end with an introduction to the Curry-Howard correspondence,
+a deep and beautiful connection between functional programs and logical proofs,
+which lies at the heart of the Coq proof assistant.
+</p>
+
+<h2 id="schedule">Logical Foundations Book</h2>
+
+<p>We will follow a slightly modified version of the Logical Foundations book,
+which is <b><a href="book/lf-current/index.html">available here</a></b>.</p>
+
+<h2 id="schedule">Schedule and Slides</h2>
+
+<p>Tuesday, 27 August 2019:</p>
+<ul>
+<li>14h00--16h00 <b>Lecture:
+  Motivation (<a href="Motivation.pdf">slides</a>),
+  <a href="book/lf-current/Basics.html">Basics</a>
+          (<a href="slides/Basics.html">slides</a>,
+          <a href="book/lf-current/Basics.v">exercises</a>,
+          <a href="sol/Basics.v">solutions</a>),
+  <a href="book/lf-current/Induction.html">Induction</a>
+          (<a href="slides/Induction.html">slides</a>,
+          <a href="book/lf-current/Induction.v">exercises</a>,
+          <a href="sol/Induction.v">solutions</a>)</b>
+</li>
+</ul>
+
+<p>Wednesday, 28 August 2019:</p>
+<ul>
+<li style="margin-bottom:5px">9h00--10h30 <b>Exercises Basic + Induction</b></li>
+<li>11h00--12h30 <b>Lecture:
+  <a href="book/lf-current/Lists.html">Lists</a>
+          (<a href="slides/Lists.html">slides</a>,
+          <a href="book/lf-current/Lists.v">exercises</a>,
+          <a href="sol/Lists.v">solutions</a>),
+  <a href="book/lf-current/Poly.html">Poly</a>
+          (<a href="slides/Poly.html">slides</a>,
+          <a href="book/lf-current/Poly.v">exercises</a>,
+          <a href="sol/Poly.v">solutions</a>),
+  <a href="book/lf-current/Tactics.html">Tactics</a>
+          (<a href="slides/Tactics.html">slides</a>,
+          <a href="book/lf-current/Tactics.v">exercises</a>,
+          <a href="sol/Tactics.v">solutions</a>)</b>
+</li>
+</ul>
+
+<p>Thursday, 29 August 2019:</p>
+<ul>
+<li style="margin-bottom:5px">9h00--10h30 <b>Exercises Lists + Poly + Tactics</b></li>
+<li style="margin-bottom:5px">11h00--13h00 <b>Lecture:
+  <a href="book/lf-current/Logic.html">Logic</a>
+          (<a href="slides/Logic.html">slides</a>,
+          <a href="book/lf-current/Logic.v">exercises</a>,
+          <a href="sol/Logic.v">solutions</a>)</b>
+</li>
+<li>15h00--16h30 <b>Lecture:
+  <a href="book/lf-current/IndProp.html">IndProp</a>
+          (<a href="slides/IndProp.html">slides</a>,
+          <a href="book/lf-current/IndProp.v">exercises</a>,
+          <a href="sol/IndProp.v">solutions</a>)</b>
+</li>
+</ul>
+
+<p>Friday, 30 August 2019:</p>
+<ul>
+<li style="margin-bottom:5px">9h00--10h30 <b>Exercises Tactics + Logic + IndProp</b></li>
+<li>11h00--12h00 <b>Lecture:
+  <a href="Multi.v">Multi</a>,
+  <a href="book/lf-current/ProofObjects.html">ProofObjects</a>
+          (<a href="slides/ProofObjects.html">slides</a>,
+          <a href="book/lf-current/ProofObjects.v">exercises</a>,
+          <a href="sol/ProofObjects.v">solutions</a>),
+  Next Steps (<a href="NextSteps.pdf">slides</a>)</b>
+</li>
+</ul>
+
+</html>

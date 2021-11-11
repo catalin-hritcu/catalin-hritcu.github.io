@@ -1,0 +1,21 @@
+* Schedule
+** Verifying TLS, Everest, Motivation, etc (Markulf, 30 mins)
+** Introduction to F* (Catalin, 30 mins)
+*** General introduction (3-in-1 system, ternary nature of F*)
+*** Verifying pure programs in F* (proving lemmas) -- QuickSort example?
+*** Verifying stateful programs in F* (hoare-style reasoning)
+- comment in 03/swap.fst, could also be useful
+*** Modules, type abstraction, parametricity, and secrecy by typing
+- could explain this first in terms of abstract data structures (ADTs)
+  and representation independence
+** Hands on verification in F* (Catalin, 2h)
+*** Illustrative examples??? (1-2 in tutorial?)
+*** Verifying pure programs in F* (3 in tutorial)
+*** Verifying stateful programs in F* (add to tutorial)
+- swap, fibonacci, factorial
+- maybe something about logs
+** Cryptographic verification with F*, high-level (Markulf, 1h)
+** Encrypt then mac F* code walk-through (Markulf and Catalin, 2h)
+* General
+- tempted to leave out refinements and only talk in
+  terms of pre- and post- conditions

@@ -1,0 +1,19 @@
+\documentclass{article}
+\usepackage{tikz}
+\begin{document}
+\usetikzlibrary{decorations.shapes}
+\usetikzlibrary{decorations.pathmorphing}
+\tikzstyle{all}= [draw, fill=blue!20,  minimum size=2em, rounded corners]
+\tikzstyle{some}=[draw, fill=green!20, minimum size=2em, rounded corners]
+\begin{tikzpicture}
+	\node[all]  (st)  at (0, 0) {$S_t$};
+	\node[all]  (st1) at (3, 0) {$S_t'$};
+	\node[all]  (ss)  at (0, 3) {$S_s$};
+	\node[some] (ss1) at (3, 3) {$\exists S_s'$};
+	\path[->, thick, very near end, below=3em] (st) edge node {$a$} (st1);
+	\draw[->, thick, very near end, below=3em] (ss) edge node {$a$} (ss1);
+	% Large lengths don't seem to quite work
+	\draw[-, thick, decorate, decoration=snake, segment length=50] (ss)  -- (st);
+	\draw[-, thick, decorate, decoration=snake, segment length=50] (ss1) -- (st1);
+\end{tikzpicture}
+\end{document}

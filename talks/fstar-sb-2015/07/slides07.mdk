@@ -1,0 +1,42 @@
+[INCLUDE=presentation]
+Title         : Type Systems for Security Verification
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../fstar
+Logo          : False
+Html Header   :
+    <script src="../script.js"></script>
+    <link rel="stylesheet" href="../style.css" id="custom_style">
+Package       : xypic
+Package       : semantic
+~Pre,~Code: language=fstar
+
+~ MathDefs
+[INCLUDE=../latex.tex]
+~
+
+## Metatheory of $\mu$F* ##
+
+![fstar-logo]
+
+#### C&#259;t&#259;lin Hri&#355;cu (Inria Paris) ####
+
+Type Systems for Security Verification Lecture
+
+Saarland University
+
+Tuesday, 24 March 2015
+
+[fstar-logo]: ../img/fstar.png { width=200px }
+
+## Sorry for the homework mess ##
+
+## Projects ##
+
+## Metatheory of $\mu$F* ##
+[tiny-fstar.txt](https://www.fstar-lang.org/papers/icfp2015/tiny-fstar.txt)
+
+[Semantic Purity and Effects Reunited in F*](https://www.fstar-lang.org/papers/icfp2015/)\
+(Draft, March 2015)

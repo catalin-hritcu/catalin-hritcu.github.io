@@ -1,0 +1,231 @@
+\documentclass[a4paper,11pt]{article}
+
+%% ** Packages
+\usepackage{fullpage}
+\usepackage{enumitem}
+
+\usepackage{afterpage}
+\usepackage{color}
+\usepackage{amssymb,amsmath,amsfonts}
+\usepackage{extarrows}
+\usepackage{mathptmx}
+\usepackage{version}
+\usepackage{xspace}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{wrapfig}
+\usepackage{ifpdf}
+\usepackage{semantic}
+\usepackage{natbib}
+\newcommand\citepos[1]{\citeauthor{#1}'s\ \citeyear{#1}}
+\bibpunct();A{},
+\let\cite=\citep
+\usepackage{amsthm}
+\usepackage{stmaryrd}
+\usepackage{subfigure}
+\usepackage{multirow}
+\usepackage{proof}
+\usepackage{mathpartir}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.3}
+
+\usepackage{hyperref}
+\lstloadlanguages{caml}
+
+% \include{preamble}
+% Something in preamble.tex causes a hard failure
+%   Undefined control sequence.
+%   <argument> \mdseries@rm
+% using minimal preamble instead
+\include{minimalpreamble}
+
+\hyphenation{meta-language}
+
+\newcommand\fstar{F$^\star$\xspace}
+\newcommand\microfstar{$\mu$\fstar} % EMF* emf*
+\newcommand\picofstar{$p$\fstar}
+
+\newcommand\emf{{\sc emf}$^\star$\xspace}
+\newcommand\deflang{{\sc dm}\xspace} %dm, evoking Dijkstra monad, defining monads, deriving monads, etc.
+\newcommand\emfST{{\sc emf}$^\star_{\text {\sc st}}$\xspace} % consistent with 2 others
+
+\newcommand{\un}[1]{\ensuremath{\underline{#1}}}
+\newcommand{\F}[2]{\mathrm{F}_{#1}~#2}
+\newcommand{\G}[3]{\mathrm{G}^{#1}_{#2}(#3)}
+\newcommand{\returnT}[1]{\mathrm{\bf return}_{\teff}~#1}
+\newcommand{\bindT}[3]{\mathrm{\bf bind}_{\teff}~#1~\mathrm{\bf to}~#2~\mathrm{\bf in}~#3}
+
+\newcommand{\sub}{\mathrm{s}}
+\newcommand{\sG}{\sub_\Gamma}
+
+\newcommand{\neu}{\ensuremath{n}}
+\newcommand{\teff}{\ensuremath{\tau}}
+\newcommand{\narr}{\xrightarrow{\neu}}
+\newcommand{\tarr}{\xrightarrow{\teff}}
+\newcommand{\earr}{\xrightarrow{\epsilon}}
+\newcommand{\dneg}[1]{(#1 -> \typez) -> \typez}
+\newcommand{\DmG}{\Delta\mid\Gamma}
+\newcommand{\fst}[1]{\mathrm{\bf fst}(#1)}
+\newcommand{\snd}[1]{\mathrm{\bf snd}(#1)}
+\newcommand{\inl}[1]{\mathrm{\bf inl}(#1)}
+\newcommand{\inr}[1]{\mathrm{\bf inr}(#1)}
+\newcommand{\mycases}[3]{\mathrm{\bf case}~#1~\mathrm{\bf inl}~#2;~\mathrm{\bf inr}~#3}
+\newcommand{\eqdef}{=_{\mathrm{\bf def}}}
+\newcommand{\bang}{\,!\,}
+
+\newcommand{\cps}[1]{\ensuremath{#1^{\star}}}          % notation for a CPS'd term
+\newcommand{\cpst}[0]{$\star$-translation\xspace}  % name of the CPS transform
+\newcommand{\cpsts}[0]{$\star$-translations\xspace}  % name of the CPS transform (plural)
+
+% "Stronger than"
+\newcommand{\stg}{\mathrel{\lesssim}}
+
+% Colors
+\definecolor{dkblue}{rgb}{0,0.1,0.5}
+\definecolor{dkgreen}{rgb}{0,0.4,0}
+\definecolor{dkred}{rgb}{0.6,0,0}
+\definecolor{dkpurple}{rgb}{0.7,0,1.0}
+\definecolor{purple}{rgb}{0.9,0,1.0}
+\definecolor{olive}{rgb}{0.4, 0.4, 0.0}
+\definecolor{teal}{rgb}{0.0,0.4,0.4}
+\definecolor{azure}{rgb}{0.0, 0.5, 1.0}
+
+% Comments
+\newcommand{\comm}[3]{\ifcheckpagebudget\else\ifdraft{\maybecolor{#1}[#2: #3]}\fi\fi}
+\newcommand{\nik}[1]{\comm{dkpurple}{Nik}{#1}}
+\newcommand{\ch}[1]{\comm{teal}{CH}{#1}}
+\newcommand{\cf}[1]{\comm{teal}{CF}{#1}}
+\newcommand{\chfoot}[1]{\ifdraft\footnote{\comm{teal}{CH}{#1}}\fi}
+%\newcommand{\gm}[1]{\comm{dkgreen}{GM}{#1}} % Guido
+\newcommand{\nig}[1]{\comm{dkgreen}{Niklas}{#1}}
+\newcommand{\gdp}[1]{\comm{blue}{GDP}{#1}} % Gordon
+\newcommand{\aseem}[1]{\comm{magenta}{Aseem}{#1}}
+\newcommand{\jp}[1]{\comm{olive}{JP}{#1}}
+\newcommand{\km}[1]{\comm{purple}{KM}{#1}}
+
+\newcommand*{\EG}{e.g.,\xspace}
+\newcommand*{\IE}{i.e.,\xspace}
+\newcommand*{\ETAL}{et al.\xspace}
+\newcommand*{\ETC}{etc.\xspace}
+
+\newcommand\surl[1]{{\small\url{#1}}}
+\newcommand\ssurl[1]{{\scriptsize\url{#1}}}
+
+\begin{document}
+
+\author{}
+
+\title{MPRI 2:30: Semester II Exam (\fstar{} Part)}
+
+\date{}
+
+\maketitle
+
+\paragraph{Question 1 (Abstract queue)}
+Consider the following module implementing (FIFO) queues using lists,
+but keeping this representation of queues and all the operations abstract.
+\begin{lstlisting}
+module AbstractQueue
+  abstract type queue = list int
+  abstract val is_empty : queue -> bool
+  let is_empty = Nil?
+  abstract val empty : q:queue{is_empty q}
+  let empty = []
+  abstract val enq : int -> queue -> q:queue{~(is_empty q)}
+  let enq x xs = Cons x xs
+  abstract val deq : q:queue{~(is_empty q)} -> queue
+  let rec deq xs = match xs with
+                   | [x] -> []
+                   | x1::x2::xs -> x1 :: deq (x2::xs)
+  abstract val front : q:queue{~(is_empty q)} -> int
+  let rec front xs = match xs with
+                     | [x] -> x
+                     | x1::x2::xs -> front (x2::xs)
+\end{lstlisting}
+To allow client code to use this interface and reason about the
+results we export lemmas providing an algebraic specification of
+queues. For instance, the following \ls$front_enq$ lemma
+\begin{lstlisting}
+  let front_enq (i:int) (q:queue) : Lemma (front (enq i q) = (if is_empty q then i else front q)) = ()
+\end{lstlisting}
+allows us to prove the following assertion {\em outside} the
+\ls$AbstractQueue$ module:
+\begin{lstlisting}
+assert(front (enq 3 (enq 2 (enq 1 empty))) = 1)
+\end{lstlisting}
+\begin{enumerate}[label={\bf (\alph*)},topsep=0pt]
+\item How many instances of the \ls$front_enq$ lemma are needed to show
+      the assert above? Write down these instances.
+\vspace{2.5cm}
+\item Write another lemma that can be exposed by the
+  \ls$AbstractQueue$ module to prove the assertion:
+\begin{lstlisting}
+assert(deq (enq 3 (enq 2 (enq 1 empty))) == enq 3 (enq 2 empty))
+\end{lstlisting}
+\end{enumerate}
+
+\clearpage
+
+\paragraph{Question 2 (Imperative count)}
+
+Write down a valid specification for the following stateful function:
+\begin{lstlisting}
+let rec count r (n:nat) : ST unit (requires (fun h0 -> ............................................................................))
+
+                             (ensures (fun h0 () h1 -> .....................................................................)) = 
+  if n > 0 then (r := !r + 1; count r (n $-$ 1))
+\end{lstlisting}
+Your specification should capture what this function does in terms of
+the usual \ls$sel$ and \ls$upd$ specification-level functions:
+\begin{lstlisting}
+val sel : #a:Type -> heap -> ref a -> GTot a
+val upd : #a:Type -> heap -> ref a -> a -> GTot heap
+\end{lstlisting}
+and can assume the usual theory of arrays for \ls$sel$ and \ls$upd$.
+
+
+\paragraph{Question 3 (Removing from lists)}
+
+The following \fstar{} function removes all occurrences of
+an integer \ls$y$ from a list \ls$xs$:
+\begin{lstlisting}
+let rec remove (y:int) (xs:list int) : Tot (list int) (decreases xs) =
+  match xs with
+  | [] -> []
+  | x :: xs' -> if x = y then remove x xs' else x :: remove y xs'
+\end{lstlisting}
+%
+We can use \ls$remove$ to implement another function that removes all
+elements of a list \ls$ys$ from a list \ls$xs$:
+\begin{lstlisting}
+let rec remove_list (ys:list int) (xs:list int) : Tot (list int) (decreases ys) =
+  match ys with
+  | [] -> xs
+  | y'::ys' -> remove y' (remove_list ys' xs)
+\end{lstlisting}
+%
+You will have to prove that \ls$remove_list$ indeed removes all the
+elements of \ls$ys$ from \ls$xs$. More precisely, given a
+function that counts all occurrences of an element \ls$y$ in a list \ls$xs$:
+%
+\begin{lstlisting}
+let rec count (y:int) (xs:list int) : Tot nat (decreases xs) =
+  match xs with
+  | [] -> 0
+  | x :: xs' -> (if x = y then 1 else 0) + count y xs'
+\end{lstlisting}
+%
+prove the following main lemma:
+\begin{lstlisting}
+val count_remove_list (y:int) (ys:list int) (xs:list int) :
+    Lemma (requires (count y ys > 0)) (ensures (count y (remove_list ys xs) = 0))
+\end{lstlisting}
+%
+Write down any intermediate lemmas you use in your proof in \fstar{}
+syntax and prove those as well.
+%
+The proofs of the main and intermediate lemmas can be in whatever
+syntax you like (\fstar{}, math, a mix) and for each of these proofs
+make it explicit over what you are doing induction, what is the case
+structure, where you are using other lemmas, etc.
+
+\end{document}

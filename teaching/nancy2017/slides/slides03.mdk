@@ -1,0 +1,544 @@
+[INCLUDE=presentation]
+Title         : Program Verification with F*
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../../stuff/fstarlang
+Logo          : False
+Html Header   :
+    <script src="../../stuff/script.js"></script>
+    <link rel="stylesheet" href="../../stuff/style.css" id="custom_style">
+Package       : xypic
+~Pre,~Code: language=fstarlang
+
+~ MathDefs
+[INCLUDE=../../stuff/latex.tex]
+~
+
+# Verifying Stateful Programs with F* #
+
+~Center
+[![fstar-logo]](https://www.fstar-lang.org)
+
+**[C&#259;t&#259;lin Hri&#355;cu, Inria Paris](http://prosecco.gforge.inria.fr/personal/hritcu/)**
+
+(with help from Kenji Maillard)
+
+[Models and Tools for Cryptographic Proofs](http://www.cs.bris.ac.uk/proofschool/)\
+Nancy, France, 10-13 July 2017
+~
+
+[fstar-logo]: ../../stuff/fstar-new.png { width=200px }
+
+<!------------------------------------------------------------------------------>
+
+## Verifying stateful programs ## {#stateful1}
+### Variant #1: intrinsically (at definition time) ###
+
+* State in F*: mutable references
+  ```
+  val incr : r:ref int -> St unit
+  let incr r = (r := (!r + 1))
+  ```
+
+* {.fragment} Hoare logic-style pre- and post-conditions
+
+  ```
+  val incr : r:ref int -> ST unit (requires (fun h0 -> True))
+                             (ensures (fun h0 _ h1 -> sel h1 r = sel h0 r + 1))
+  ```
+* {.fragment} Beyond what can be expressed with refinements
+* {.fragment} Now pre-condition is relation on initial states;
+    post-condition is relation on initial states, result values, and final states
+    - the more complex the effect, the more complex the specs (and proofs)
+
+<!-- `St` is actually just an abbreviation -->
+<!-- ``` -->
+<!-- St t = ST t (requires True) (ensures (fun _ _ _ -> True)) -->
+<!-- ``` -->
+
+<!------------------------------------------------------------------------------>
+
+## Heap and ST operations (simplified) ##
+```
+module FStar.Heap
+
+  val heap : Type
+  val ref : Type -> Type
+
+  val sel : #a:Type -> heap -> ref a -> Tot a
+  val upd : #a:Type -> heap -> ref a -> a -> Tot heap
+
+  val selUpdEq : #a:Type -> h:heap -> r:ref a -> v:a ->
+        Lemma (sel (upd h r v) r  == v) [SMTPat (sel (upd h r v) r)]
+                   
+  val selUpdNeq : #a:Type -> h:heap -> r1:ref a -> r2:ref a -> v:a ->
+        Lemma (r1 =!= r2 ==>
+               sel (upd h r1 v) r2 == sel h r2) [SMTPat (sel (upd h r1 v) r2)]
+```
+~Fragment
+```
+module FStar.ST
+  open FStar.Heap
+
+  val (!): #a:Type -> r:ref a -> ST a
+    (requires (fun (h:heap) -> True))
+    (ensures (fun (h0:heap) (x:a) (h1:heap) -> h0 == h1 /\ x == sel h0 r))
+
+  val (:=): #a:Type -> r:ref a -> v:a -> ST unit
+    (requires (fun (h:heap) -> True))
+    (ensures (fun (h0:heap) (x:a) (h1:heap) -> h1 == upd h0 r v))
+```
+~
+
+<!-- TODO: what's the relation to this and modifies? does this change?
+           should the equalities on heaps become something else?
+           looking at FStar.ST it seems not, but should double check.
+-->
+
+<!-- leaving out alloc here, since it's not interesting for our examples,
+     where allocation happens outside the code that we verify -->
+
+<!------------------------------------------------------------------------------>
+
+## Verifying incr (intuition) ##
+
+```
+module FStar.ST
+
+  val (!) : #a:Type -> r:ref a -> ST a
+    (requires (fun h0 -> True))
+    (ensures (fun h0 x h1 -> h0 == h1 /\ x == sel h0 r))
+
+  val (:=) : #a:Type -> r:ref a -> v:a -> ST unit
+    (requires (fun h -> True))
+    (ensures (fun h0 x h1 -> h1 == upd h0 r v))
+```
+```
+val incr r:ref int -> ST unit (requires (fun h0 -> True))
+            (ensures (fun h0 _ h2 -> exists h1 x. h0 == h1 /\ x == sel h0 r /\
+                                                  h2 == upd h1 r (x + 1)))
+let incr r = let x = !r in r := x + 1
+```
+~Fragment
+```
+val incr : r:ref int -> ST unit (requires (fun h0 -> True))
+                           (ensures (fun h0 _ h2 -> sel h2 r = sel h0 r + 1))
+```
+~
+~Fragment
+```
+sel (upd h0 r ((sel h0 r) + 1)) r = sel h0 r + 1
+```
+~
+~Fragment
+```
+sel h0 r + 1 = sel h0 r + 1
+```
+~
+
+<!-- TODO: if I explained this could be more formal about the examples
+           like incr and code/03/SwapVerify.fst
+
+  G |- e1 : ST t1 (requires (fun h -> pre)) (ensures (fun h x1 h' -> post))
+  G, x1:t1 |- e2 : ST (requires (fun h' -> exists h. post))
+                      (ensures (fun h' x2 h'' -> post'))
+  ---------------------------------------------------------------------------
+  G |- let x1 = e1 in e2 : ST t2 (requires (fun h -> pre))
+                      (ensures (fun h x2 h'' -> exists x1 h'. post /\ post'))
+-->
+
+<!------------------------------------------------------------------------------>
+
+## Swapping two references ##
+
+```
+val swap_add_sub : r1:ref int -> r2:ref int -> St unit
+let swap_add_sub r1 r2 =
+  r1 := !r1 + !r2;
+  r2 := !r1 - !r2;
+  r1 := !r1 - !r2
+
+let main =
+  let r1 = alloc 1 in
+  let r2 = alloc 2 in
+  swap_add_sub r1 r2;
+  print_string ("r1=" ^ string_of_int !r1 ^ "; " ^
+                "r2=" ^ string_of_int !r2 ^ "\n")
+```
+~Block {.console}
+```text
+...
+r1=2; r2=1
+```
+~
+
+<!------------------------------------------------------------------------------>
+
+## Specifying reference swapping
+```
+val swap : r1:ref int -> r2:ref int -> ST unit
+    (requires (fun h' -> True ))
+    (ensures (fun h' _ h ->
+                sel h r1 = sel h' r2 /\ sel h r2 = sel h' r1))
+let swap r1 r2 =
+  let t = !r1 in
+  r1 := !r2;
+  r2 := t
+```
+Hand proof sketch in `code/03/SwapVerify.fst`
+
+
+<!------------------------------------------------------------------------------>
+
+## Exercise: specify imperative factorial ##
+```
+val factorial_tot : nat -> Tot nat
+let rec factorial_tot x = if x = 0 then 1 else x * factorial_tot (x - 1)
+
+(* TODO: write a stronger ensures clause for factorial that proves
+         it does the same thing as factorial_tot *)
+val factorial : r1:ref nat -> r2:ref nat -> ST unit
+      (requires (fun h' -> True))
+      (ensures (fun h' a h -> True))
+let rec factorial r1 r2 =
+  let x1 = !r1 in
+  if x1 = 0
+  then r2 := 1
+  else 
+    (r1 := x1 - 1;
+     factorial r1 r2;
+     r2 := !r2 * x1)
+```
+
+<!-- TODO: A natural solution of this exercise in terms of equality of
+     heaps is very flaky (probably relies on heap extensionality, it
+     works with --verify_all but fails without it).
+
+val factorial : r1:ref nat -> r2:ref nat -> ST unit
+      (requires (fun h' -> True))
+      (ensures (fun h' a h -> exists x.
+                  equal h (upd (upd h' r1 x) r2 (factorial_tot (sel h' r1)))))
+
+  Needed to instead use modifies clause and was not sure about the
+  syntax. Should introduce in advance, but it's quite horribly syntax.
+  
+  TODO: Another thing confusing about this example is that it
+        works just fine even when the references are aliased.
+        This is a sign that only a single reference is needed.
+        (or whatever, no references are needed)
+        
+  TODO: Next time just give them this one, and instead ask them for
+        the spec of swap
+  
+  TODO: or better, switch to better examples instead
+        - CountST -- nice and simple 
+        - SumST -- nice and simple, proof on the spec, but nonlinear arithmetic
+        - fibbonaci -- more complex, simple functional definition not tail recursive
+
+-->
+
+<!------------------------------------------------------------------------------>
+
+## Stateful invariants ##
+
+```
+  let r = alloc #nat 0 in
+  r := 1;
+  r := 2
+(*   r := -2 -- expected type Prims.nat; got type Prims.int *)
+```
+
+<!------------------------------------------------------------------------------>
+
+## Monotonic references, by example ##
+```
+let increases (n m:nat) : Type0 = n <= m
+
+let incr (r:mref nat increases) : ST unit (requires (fun _ -> True))
+                                          (ensures (fun _ _ h -> sel h r > 0))
+  = r := !r + 1
+
+(* let decr (r:mref nat increases) : St unit =  -- fails as it should
+  r := (!r - 1) *)
+```
+~Fragment
+```
+assume val complex_procedure (r:mref nat increases) : St unit
+```
+```
+let nonzero (n:nat) : Type0 = n > 0
+
+let main() : St unit =
+  let r = alloc increases 0 in
+  incr r;
+  witness r nonzero;
+  complex_procedure r;
+  let x = !r in
+  (* assert (x > 0); -- fails as it should *)
+  recall r nonzero;
+  assert (x > 0)
+```
+~
+
+<!------------------------------------------------------------------------------>
+
+## Monotonic references interface (part 1) ##
+
+```
+type relation (a:Type) = a -> a -> Type0
+
+type preorder (a:Type) = rel:relation a{(forall (x:a). rel x x)
+    /\ (forall (x:a) (y:a) (z:a). (rel x y /\ rel y z) ==> rel x z)}
+```
+~Fragment
+Examples: $\leq$, $\subseteq$, $\to^*$, ...
+~
+~Fragment
+```
+val alloc : #a:Type -> preorder a -> a -> ST (mref a rel) ...
+val (:=) : #a:Type -> #rel:preorder a -> r:mref a rel -> v:a -> : ST unit
+  (requires (fun h -> rel (sel h r) v))
+  (ensures (fun h0 x h1 -> h1 == upd h0 r v))
+```
+~
+
+<!------------------------------------------------------------------------------>
+
+## Stable predicates, witness and recall (part 2) ##
+```
+type predicate (a:Type) = a -> Type0
+
+let stable (#a:Type) (p:predicate a) (rel:preorder a) =
+  forall (x:a) (y:a). (p x /\ rel x y) ==> p y
+```
+~Fragment
+```
+token : #a:Type -> #rel:preorder a -> mref a rel ->
+            p:(a -> Type){stable p rel} -> Type
+
+witness: #a:Type -> #rel:preorder a -> m:mref a rel -> p:(pred a){stable p rel}
+                        -> ST unit (requires (fun h0 -> p (sel h0 m)))
+                                   (ensures (fun h0 _ h1 -> h0==h1 /\ token m p))
+
+recall: #a:Type -> #rel:preorder a -> m:mref a rel -> p:(pred a){stable p rel}
+                    -> ST unit (requires (fun _ ->  token m p))
+                               (ensures (fun h0 _ h1 -> h0==h1 /\ p (sel h1 m)))
+```
+~
+
+<!------------------------------------------------------------------------------>
+
+## Simple monotonic log ##
+
+```
+let subset' (#a:eqtype) (l1:list a) (l2:list a)
+  = (forall x. x `mem` l1 ==> x `mem` l2)
+let subset (#a:eqtype) : Tot (preorder (list a)) = subset'
+
+let lref = mref (list int) subset
+
+let add_to_log (r:lref) (v:int) : ST unit (requires (fun _ -> True))
+                                     (ensures (fun _ _ h -> v `mem` (sel h r))) =
+  r := (v :: !r)
+```
+~Fragment
+```
+assume val complex_procedure (r:lref) : St unit
+```
+```
+let main() : St unit =
+  let r = alloc (subset #int) [] in
+  add_to_log r 42;
+  witness r (fun xs -> 42 `mem` xs);
+  assert (token r (fun xs -> 42 `mem` xs));
+  complex_procedure r;
+  assert (token r (fun xs -> 42 `mem` xs));
+  recall r (fun xs -> 42 `mem` xs);
+  let xs = !r in
+  assert (42 `mem` xs)
+```
+~
+
+<!------------------------------------------------------------------------------>
+
+## Preorder for Initializing and Freezing references ##
+
+```
+type rstate (a:Type) =
+  | Empty : rstate a
+  | Mutable : v:a -> rstate a
+  | Frozen : v:a -> rstate a
+```
+~Fragment
+```
+let evolve (a:Type) = fun r1 r2 ->
+  match r1, r2 with
+  | Empty, Mutable _
+  | Mutable _, Mutable _ -> True
+  | Mutable v1, Frozen v2 -> v1 == v2
+  | _, _ -> False
+(* let evolve (a:Type) : Tot (preorder (rstate a)) = evolve a *)
+```
+~
+~Fragment
+This fails to typecheck! Why is this? Can you fix it?
+~
+~Fragment
+```
+let evolve' (a:Type) = fun r1 r2 ->
+  match r1, r2 with
+  | Empty, _
+  | Mutable _, Mutable _
+  | Mutable _, Frozen _  -> True 
+  | Frozen v1, Frozen v2 -> v1 == v2
+  | _, _ -> False
+let evolve (a:Type) : Tot (preorder (rstate a)) = evolve' a
+```
+<-- TODO: had a hand drawing on this on the board *)
+
+~
+<!------------------------------------------------------------------------------>
+
+## Initializing and Freezing references ##
+
+```
+let alloc (a:Type) = alloc (evolve a) Empty
+let read (#a:Type) (r:eref a) = match (!r) with | Mutable v | Frozen v -> v
+let write (#a:Type) (r:eref a) (v:a) = r := Mutable v
+let freeze (#a:Type) (r:eref a) = r := Frozen (Mutable?.v !r)
+```
+~Fragment
+```
+assume val complex_procedure (r:eref int) : St unit
+```
+```
+let main() : St unit =
+  let r = alloc int in
+  (* ignore (read r) -- fails like it should *)
+  write r 42;
+  ignore (read r);
+  write r 0;
+  witness r (fun rs -> ~(Empty? rs));
+  freeze r;
+  (* write r 7; -- fails like it should *)
+  ignore (read r);
+  witness r (fun rs -> rs == Frozen 0);
+  complex_procedure r;
+  (* ignore (read r); -- fails like it should *)
+  recall r (fun rs -> ~(Empty? rs));
+  let x = read r in
+  (* assert (x == 0) -- fails like it should *)
+  recall r (fun rs -> rs == Frozen 0);
+  assert (x == 0)
+```
+~
+
+<!------------------------------------------------------------------------------>
+
+## Giving specs to our new primitives ##
+
+```
+let eref (a:Type) : Type = mref (rstate a) (evolve a)
+
+let alloc (a:Type) : ST (eref a) (requires (fun _ -> True))
+                                 (ensures (fun _ r h -> Empty? (sel h r)))
+  = alloc (evolve a) Empty
+
+let read (#a:Type) (r:eref a) : ST a (requires (fun h -> ~(Empty? (sel h r))))
+      (ensures (fun h v h' -> h == h' /\
+                              (sel h r == Mutable v \/ sel h r == Frozen v)))
+  = match (!r) with | Mutable v | Frozen v -> v
+
+let write (#a:Type) (r:eref a) (v:a) :
+      ST unit (requires (fun h -> ~(Frozen? (sel h r))))
+              (ensures (fun _ _ h -> sel h r == Mutable v))
+  = r := Mutable v
+
+let freeze (#a:Type) (r:eref a) : ST ...
+  = r := Frozen (Mutable?.v !r)
+```
+~Fragment
+Exercise: write a type for freeze so that things typecheck
+~
+<!-- TODO: freeze's type is tricky because natural postcondition is
+           is now well-typed without assuming the precondition
+val freeze : #a:Type -> r:eref a -> ST unit (requires (fun h0 -> Mutable? (sel h0 r)))
+      (ensures (fun h0 _ h1 -> Mutable? (sel h0 r) /\
+                               sel h1 r == Frozen (Mutable?.v (sel h0 r))))
+let freeze #a r = r := Frozen (Mutable?.v !r)
+-->
+~Fragment
+Exercise: write a function that writes an arbitrary non-frozen
+reference and freezes it at the same time.
+~
+<!-- TODO: let write_plus_freeze (#a:Type) (r:eref a) (v:a) = r := Frozen v -->
+
+<!------------------------------------------------------------------------------>
+
+## Verifying stateful programs ## {#stateful2}
+### Variant #2: extrinsically (by monadic reification) ###
+
+* Revealing pure effect representation
+    ```
+    STATE.reify (e : ST a pre post)
+      : n0:nat -> Pure (a * nat) (requires (pre n0))
+                                 (ensures (fun r -> post n0 (fst r) (snd r))
+    ```
+
+* {.fragment} Allows us to give weak specification to an effectful function
+  ```
+    let incr () : ST a (requires (fun _ -> True)) (ensures (fun _ _ _ -> True))
+      = let n = STATE.get() in STATE.put (n + 1)
+  ```
+
+* {.fragment} ... then prove lemmas about reification of effectful computation
+  ```
+    let incr_increases (s0:s) : Lemma (snd (ST.reify (incr()) s0) = s0 + 1) = ()
+  ```
+
+* {.fragment} reify only when the abstraction permits (e.g. ghost code)
+
+<!-- TODO: moved to a single natural cell, should use references here!
+     Do it for the sum_up/sum_down example from relational paper -->
+
+<!------------------------------------------------------------------------------>
+
+## Some dreams and ongoing work on F\* ##
+
+* **Find best balance between automation and control**
+  - adding tactics à la Lean/Idris, using F\* itself for meta-programming
+
+* {.fragment}**Fully work out metatheory of F***
+  - formalizing monotonic state and F* to SMT encoding
+  - longer term: semantic model; self-certify implementation
+
+* {.fragment}**Verify and deploy new, efficient HTTPS stack ([Everest](https://project-everest.github.io/))**
+  - verified interoperability of F\* (OCaml), Low\* (C), and Vale (ASM) 
+  <!-- - Securely compiling F* (e.g. full abstraction -->
+
+* {.fragment}**Opportunities brought in by extensible effect system**
+  - beyond ML effects: probabilities, concurrency, ...
+  - relational verification, e.g. for more flexible confidentiality proofs
+  <!-- - non-termination as defined effect? extrinsic reasoning about `DIV`? -->
+  <!-- - can DM4Free be also applied to algebraic handlers? -->
+
+<!------------------------------------------------------------------------------>
+
+## F*: verification of effectful programs ##
+
+* **[Functional programming language with effects]{color:Black;}**
+
+* **[Semi-automated verification system using SMT]{color:DarkBlue;}**
+
+* **[Interactive proof assistant based on dependent types]{color:DarkRed;}**
+
+* **Open source, [code on GitHub](https://github.com/FStarLang/FStar)**
+
+* **Tutorial, papers, slides at [fstar-lang.org](https://fstar-lang.org)**
+
+* **PhD internships at Microsoft Research** (Cambridge, Redmond,
+  Bangalore); application in Dec 2017 - Jan 2018
+
+* {.fragment} **Next: Code-Based Cryptographic Verification in F* (Markulf)**

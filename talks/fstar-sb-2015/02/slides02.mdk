@@ -1,0 +1,166 @@
+[INCLUDE=presentation]
+Title         : Type Systems for Security Verification
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../fstar
+Logo          : False
+Html Header   :
+    <script src="../script.js"></script>
+    <link rel="stylesheet" href="../style.css" id="custom_style">
+Package       : xypic
+~Pre,~Code: language=fstar
+
+~ MathDefs
+[INCLUDE=../latex.tex]
+~
+
+# F* Basics #
+
+![fstar-logo]
+
+#### C&#259;t&#259;lin Hri&#355;cu (Inria Paris) ####
+
+Type Systems for Security Verification Lecture
+
+Saarland University
+
+Tuesday, 17 March 2015
+
+[fstar-logo]: ../img/fstar.png { width=200px }
+
+
+## Some organization ##
+
+* 1st Homework
+  - 2 optional exercises, for bonus points (4d and 4f)
+  - all exercises 1p (6p without, 8p with bonus points)
+
+* Extending project period to Monday, 30 March
+
+
+## Small correction for Lemma ##
+```
+Lemma t (requires r) (ensures e) = Pure unit (requires r) (ensures (fun _ -> e))
+Tot t = Pure (requires True) (ensures True)
+```
+
+## Today ##
+
+* Semantic termination checking
+
+* Simple effects: non-termination, exceptions
+
+* Examples
+  - Binary search trees
+  - While language interpreter
+
+* Tutorial
+  - solving 4d and 4f, maybe more
+
+
+## Semantic termination checking ## {#term}
+* Pure expressions proved terminating in F*
+* {.fragment} Well-founded measure on F* expressions
+  - `e1 << e2` (`e1` precedes `e2`)
+  - `(<<) : #a:Type -> #b:Type -> a -> b -> Type`
+  - no infinite descending chains (`e1 >> e2 >> ...`)
+* {.fragment} Decreases metric on recursive functions
+  - pure function/expression on the argument(s)
+  - at each recursive call check that metric applied to the
+    argument(s) of the recursive call decreases
+    <!-- mouthfull -->
+  - default: lex ordering of the non-function arguments
+      (left-to-right)
+  - default can be overridden with `(decreases ...)` clause
+
+
+## The precedes relation ## {#precedes}
+* if `i, j : nat` then `i << j <==> i < j`.
+  - negative integers are not related by `<<`
+* {.fragment} sub-term ordering for inductive types
+  - `hd::tl << hd` and `hd::tl << tl`
+* {.fragment} elements of type `lex_t` are ordered lexicographically
+```
+type lex_t = LexTop : lex_t | LexCons: #a:Type -> a -> lex_t -> lex_t
+%[v1;...;vn]@ = LexCons v1 ... (LexCons vn LexTop)
+```
+  - `LexCons v1 v2 << LexCons v1' v2'` if and only if\
+     either `v1 << v1'` or (`v1=v1'` and `v2 << v2'`)
+  - if `v:lex_t` and `v \(\neq\) LexTop`, then `v << LexTop`
+* {.fragment} Well-founded (since we require that negative occurrences
+    in an inductive type definition are under at least one `DIV` arrow)
+<!-- it would be nice to show counterexample, once we fix it -->
+
+
+## Some termination proofs in detail ##
+
+[Tutorial 5.3 and 5.4](https://www.fstar-lang.org/tutorial/tutorial.html#sec-a-termination-proof-in-detail)
+
+<!-- for the mutual example it would be nice to show a counterexample
+     for the weaker variants of the check -->
+
+<!-- for the mutual example I have a nice diagram:
+     http://prosecco.gforge.inria.fr/personal/hritcu/talks/fstar-sb-2015/stuff/20150317_110640.jpg  -->
+
+## Let rec typing rule ##
+
+![let-rec]
+
+[let-rec]: /img/let-rec.png
+
+
+## Non-termination ## {#non-term}
+* Same as pure, just no termination check
+* `DIV ~ PURE`, `Div ~ Pure`, `Dv ~ Tot`
+  - no equivalent for `Lemma`, of course
+```
+val loop : u:unit -> Div unit (requires True) (ensures (fun _ -> False))
+let rec loop () = loop ()
+```
+
+* We'll see examples soon (While interpreter)
+
+
+## Exceptions ##
+* For code that can `raise` exceptions
+* Exceptions can be caught with
+```
+try e1 with
+| pattern1 -> expression2
+| pattern2 -> expression3
+  ...
+```
+  - This cannot make one pure (`DIV` actually),\
+    although one can get close to that (see ICFP)
+* `EXN ~~ PURE`, `Exn ~~ Pure`, `Ex ~~ Tot`
+* `EXN` includes `DIV` (`DIV <: EXN`)
+
+<!-- require-ensures just as boring as pure?
+     only at the predicate transformer level there are larger changes? -->
+
+
+## Looking at examples ##
+* Binary search trees
+* While language interpreter
+
+
+## Homework ## {#homework}
+* Binary search trees (extrinsic proofs) - 3 x 1p
+* While language interpreter\
+  (adding `if-then-else` removing `while`) - 2 x 1p
+* Two optional problems (5a and 5b, tail recursion) - 2 x 1p
+
+
+## Tutorial ##
+* solving some of the prev homework together
+* 4a, 4b, 4c, 4g, 4h easy
+* 4e a bit more interesting
+* 4d, 4f slightly challenging, optional
+
+<!-- TODO
+- should rename things `ex_while.fst` to match `wp.fst`
+  - stmt -> com, etc.
+
+-->

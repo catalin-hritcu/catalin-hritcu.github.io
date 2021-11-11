@@ -1,0 +1,261 @@
+[INCLUDE=presentation]
+Title         : Program Verification with F*
+Author        : Catalin Hritcu
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../../stuff/fstarlang
+Logo          : False
+Html Header   :
+    <script src="../../stuff/script.js"></script>
+    <link rel="stylesheet" href="../../stuff/style.css" id="custom_style">
+Package       : xypic
+~Pre,~Code: language=fstarlang
+
+~ MathDefs
+[INCLUDE=../../stuff/latex.tex]
+~
+
+# Monotonic State in F*  #
+
+~Center
+[![fstar-logo]](https://www.fstar-lang.org)
+
+**[C&#259;t&#259;lin Hri&#355;cu, Inria Paris](http://prosecco.gforge.inria.fr/personal/hritcu/)**
+
+[Computer-aided security proofs](https://cs.au.dk/research/logic-and-semantics/courses/)
+
+Aarhus, Denmark, 9-11 October 2017
+~
+
+[fstar-logo]: ../../stuff/fstar-new.png { width=200px }
+
+<!------------------------------------------------------------------------------>
+
+## Monotonic references, by example ##
+```
+let increases (n m:nat) : Type0 = n <= m
+
+let incr (r:mref nat increases) : ST unit (requires (fun _ -> True))
+                                          (ensures (fun _ _ h -> sel h r > 0))
+  = r := !r + 1
+
+(* let decr (r:mref nat increases) : St unit =  -- fails as it should
+  r := (!r - 1) *)
+```
+~Fragment
+```
+assume val complex_procedure (r:mref nat increases) : St unit
+```
+```
+let nonzero (n:nat) : Type0 = n > 0
+
+let main() : St unit =
+  let r = alloc increases 0 in
+  incr r;
+  witness r nonzero;
+  complex_procedure r;
+  let x = !r in
+  (* assert (x > 0); -- fails as it should *)
+  recall r nonzero;
+  assert (x > 0)
+```
+~
+
+<!------------------------------------------------------------------------------>
+
+## Monotonic references interface (part 1) ##
+
+```
+type relation (a:Type) = a -> a -> Type0
+
+type preorder (a:Type) = rel:relation a{(forall (x:a). rel x x)
+    /\ (forall (x:a) (y:a) (z:a). (rel x y /\ rel y z) ==> rel x z)}
+```
+~Fragment
+Examples: $\leq$, $\subseteq$, $\to^*$, ...
+~
+~Fragment
+```
+val alloc : #a:Type -> preorder a -> a -> ST (mref a rel) ...
+val (:=) : #a:Type -> #rel:preorder a -> r:mref a rel -> v:a -> : ST unit
+  (requires (fun h -> rel (sel h r) v))
+  (ensures (fun h0 x h1 -> h1 == upd h0 r v))
+```
+~
+
+<!------------------------------------------------------------------------------>
+
+## Stable predicates, witness and recall (part 2) ##
+```
+type predicate (a:Type) = a -> Type0
+
+let stable (#a:Type) (p:predicate a) (rel:preorder a) =
+  forall (x:a) (y:a). (p x /\ rel x y) ==> p y
+```
+~Fragment
+```
+token : #a:Type -> #rel:preorder a -> mref a rel ->
+            p:(a -> Type){stable p rel} -> Type
+
+witness: #a:Type -> #rel:preorder a -> m:mref a rel -> p:(pred a){stable p rel}
+                        -> ST unit (requires (fun h0 -> p (sel h0 m)))
+                                   (ensures (fun h0 _ h1 -> h0==h1 /\ token m p))
+
+recall: #a:Type -> #rel:preorder a -> m:mref a rel -> p:(pred a){stable p rel}
+                    -> ST unit (requires (fun _ ->  token m p))
+                               (ensures (fun h0 _ h1 -> h0==h1 /\ p (sel h1 m)))
+```
+~
+
+<!-- TODO:
+- Could do some nice exercises asking students whether a certain
+  predicate is stable under a certain relation
+-->
+
+<!------------------------------------------------------------------------------>
+
+## Simple monotonic log ##
+
+```
+let subset' (#a:eqtype) (l1:list a) (l2:list a)
+  = (forall x. x `mem` l1 ==> x `mem` l2)
+let subset (#a:eqtype) : Tot (preorder (list a)) = subset'
+
+let lref = mref (list int) subset
+
+let add_to_log (r:lref) (v:int) : ST unit (requires (fun _ -> True))
+                                     (ensures (fun _ _ h -> v `mem` (sel h r))) =
+  r := (v :: !r)
+```
+~Fragment
+```
+assume val complex_procedure (r:lref) : St unit
+```
+```
+let main() : St unit =
+  let r = alloc (subset #int) [] in
+  add_to_log r 42;
+  witness r (fun xs -> 42 `mem` xs);
+  assert (token r (fun xs -> 42 `mem` xs));
+  complex_procedure r;
+  assert (token r (fun xs -> 42 `mem` xs));
+  recall r (fun xs -> 42 `mem` xs);
+  let xs = !r in
+  assert (42 `mem` xs)
+```
+~
+
+<!------------------------------------------------------------------------------>
+
+## Preorder for Initializing and Freezing references ##
+
+```
+type rstate (a:Type) =
+  | Empty : rstate a
+  | Mutable : v:a -> rstate a
+  | Frozen : v:a -> rstate a
+```
+~Fragment
+```
+let evolve (a:Type) = fun r1 r2 ->
+  match r1, r2 with
+  | Empty, Mutable _
+  | Mutable _, Mutable _ -> True
+  | Mutable v1, Frozen v2 -> v1 == v2
+  | _, _ -> False
+(* let evolve (a:Type) : Tot (preorder (rstate a)) = evolve a *)
+```
+~
+~Fragment
+This fails to typecheck! Why is this? Can you fix it?
+~
+~Fragment
+```
+let evolve' (a:Type) = fun r1 r2 ->
+  match r1, r2 with
+  | Empty, _
+  | Mutable _, Mutable _
+  | Mutable _, Frozen _  -> True 
+  | Frozen v1, Frozen v2 -> v1 == v2
+  | _, _ -> False
+let evolve (a:Type) : Tot (preorder (rstate a)) = evolve' a
+```
+<!-- TODO: had a hand drawing on this on the board -->
+
+~
+<!------------------------------------------------------------------------------>
+
+## Initializing and Freezing references ##
+
+```
+let alloc (a:Type) = alloc (evolve a) Empty
+let read (#a:Type) (r:eref a) = match (!r) with | Mutable v | Frozen v -> v
+let write (#a:Type) (r:eref a) (v:a) = r := Mutable v
+let freeze (#a:Type) (r:eref a) = r := Frozen (Mutable?.v !r)
+```
+~Fragment
+```
+assume val complex_procedure (r:eref int) : St unit
+```
+```
+let main() : St unit =
+  let r = alloc int in
+  (* ignore (read r) -- fails like it should *)
+  write r 42;
+  ignore (read r);
+  write r 0;
+  witness r (fun rs -> ~(Empty? rs));
+  freeze r;
+  (* write r 7; -- fails like it should *)
+  ignore (read r);
+  witness r (fun rs -> rs == Frozen 0);
+  complex_procedure r;
+  (* ignore (read r); -- fails like it should *)
+  recall r (fun rs -> ~(Empty? rs));
+  let x = read r in
+  (* assert (x == 0) -- fails like it should *)
+  recall r (fun rs -> rs == Frozen 0);
+  assert (x == 0)
+```
+~
+
+<!------------------------------------------------------------------------------>
+
+## Giving specs to our new primitives ##
+
+```
+let eref (a:Type) : Type = mref (rstate a) (evolve a)
+
+let alloc (a:Type) : ST (eref a) (requires (fun _ -> True))
+                                 (ensures (fun _ r h -> Empty? (sel h r)))
+  = alloc (evolve a) Empty
+
+let read (#a:Type) (r:eref a) : ST a (requires (fun h -> ~(Empty? (sel h r))))
+      (ensures (fun h v h' -> h == h' /\
+                              (sel h r == Mutable v \/ sel h r == Frozen v)))
+  = match (!r) with | Mutable v | Frozen v -> v
+
+let write (#a:Type) (r:eref a) (v:a) :
+      ST unit (requires (fun h -> ~(Frozen? (sel h r))))
+              (ensures (fun _ _ h -> sel h r == Mutable v))
+  = r := Mutable v
+
+let freeze (#a:Type) (r:eref a) : ST ...
+  = r := Frozen (Mutable?.v !r)
+```
+~Fragment
+Exercise: write a type for freeze so that things typecheck
+~
+<!-- TODO: freeze's type is tricky because natural postcondition is
+           is now well-typed without assuming the precondition
+val freeze : #a:Type -> r:eref a -> ST unit (requires (fun h0 -> Mutable? (sel h0 r)))
+      (ensures (fun h0 _ h1 -> Mutable? (sel h0 r) /\
+                               sel h1 r == Frozen (Mutable?.v (sel h0 r))))
+let freeze #a r = r := Frozen (Mutable?.v !r)
+-->
+~Fragment
+Exercise: write a function that writes an arbitrary non-frozen
+reference and freezes it at the same time.
+~
+<!-- TODO: let write_plus_freeze (#a:Type) (r:eref a) (v:a) = r := Frozen v -->
