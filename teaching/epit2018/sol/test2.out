@@ -1,0 +1,20 @@
+{"kind":"protocol-info","version":2,"features":["autocomplete","autocomplete/context","compute","compute/reify","compute/pure-subterms","describe-protocol","describe-repl","exit","vfs-add","lookup","lookup/context","lookup/documentation","lookup/definition","peek","pop","push","search"]}
+{"kind":"response","query-id":"1","status":"success","response":[]}
+{"kind":"response","query-id":"2","status":"success","response":[]}
+{"kind":"response","query-id":"3","status":"success","response":[]}
+{"kind":"response","query-id":"4","status":"success","response":[]}
+{"kind":"response","query-id":"5","status":"success","response":[]}
+{"kind":"response","query-id":"6","status":"failure","response":[{"level":"error","message":"Subtyping check failed; expected type Prims.nat; got type Prims.int","ranges":[{"fname":"<input>","beg":[27,26],"end":[27,34]},{"fname":"/home/hritcu/Projects/fstar/pub/bin/../ulib/prims.fst","beg":[289,17],"end":[289,23]}]}]}
+{"kind":"response","query-id":"7","status":"success","response":[]}
+{"kind":"response","query-id":"8","status":"success","response":[]}
+{"kind":"response","query-id":"9","status":"success","response":[]}
+{"kind":"response","query-id":"10","status":"success","response":[]}
+{"kind":"response","query-id":"11","status":"success","response":[]}
+{"kind":"response","query-id":"12","status":"success","response":[]}
+{"kind":"response","query-id":"13","status":"success","response":null}
+{"kind":"response","query-id":"14","status":"success","response":[]}
+{"kind":"response","query-id":"15","status":"success","response":null}
+{"kind":"response","query-id":"16","status":"success","response":[]}
+{"kind":"response","query-id":"17","status":"failure","response":"No such symbol, module, or namespace."}
+{"kind":"response","query-id":"18","status":"success","response":{"kind":"symbol","name":"RSA.pow","defined-at":null,"type":"g:Prims.nat -> e:Prims.nat -> Prims.Tot Prims.nat","documentation":null,"definition":null}}
+{"kind":"response","query-id":"19","status":"success","response":{"kind":"symbol","name":"RSA.pow","defined-at":null,"type":"g:Prims.nat -> e:Prims.nat -> Prims.Tot Prims.nat","documentation":null,"definition":null}}

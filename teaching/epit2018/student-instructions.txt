@@ -1,0 +1,23 @@
+
+The easiest way to try out F* quickly is directly in your browser
+using the online editor that's part of the F* tutorial:
+https://www.fstar-lang.org/run.php
+(and we are in the process of exposing an even cooler online editor from
+ https://people.csail.mit.edu/cpitcla/fstar.js )
+
+For people who want to get F* (v0.9.6.0-alpha1 released today)
+installed on their machine there are 2 easy options:
+
+1. Using the latest binary release
+https://github.com/FStarLang/FStar/blob/master/INSTALL.md#binary-releases
+https://github.com/FStarLang/FStar/releases/tag/v0.9.6.0-alpha1
+
+2. Using the OPAM package (especially for people already using OCaml)
+https://github.com/FStarLang/FStar/blob/master/INSTALL.md#opam-package
+
+In addition, if you're familiar with emacs we recommend installing fstar-mode:
+https://github.com/FStarLang/fstar-mode.el
+
+For people who are more motivated, there are even more ways including
+building things from sources. It's all documented here:
+https://github.com/FStarLang/FStar/blob/master/INSTALL.md

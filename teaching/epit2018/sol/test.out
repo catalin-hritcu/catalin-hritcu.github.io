@@ -1,0 +1,20 @@
+{"kind":"protocol-info","version":2,"features":["autocomplete","compute","describe-protocol","describe-repl","exit","lookup","lookup/documentation","lookup/definition","pop","peek","push","search"]}
+{"kind":"response","query-id":"1","status":"success","response":[]}
+{"kind":"response","query-id":"2","status":"success","response":[]}
+{"kind":"response","query-id":"3","status":"success","response":[]}
+{"kind":"response","query-id":"4","status":"success","response":[]}
+{"kind":"response","query-id":"5","status":"failure","response":[{"level":"error","message":"Unknown assertion failed (SMT solver says: unknown because canceled (fuel=8; ifuel=2; ); SMT solver says: unknown because (resource limits reached) (fuel=4; ifuel=2; ); SMT solver says: unknown because (resource limits reached) (fuel=1; ifuel=2; ); SMT solver says: unknown because (resource limits reached) (fuel=1; ifuel=1; ))","ranges":[{"fname":"<input>","beg":[25,0],"end":[27,34]}]}]}
+{"kind":"response","query-id":"6","status":"success","response":[]}
+{"kind":"response","query-id":"7","status":"success","response":[]}
+{"kind":"response","query-id":"8","status":"success","response":[]}
+{"kind":"response","query-id":"9","status":"success","response":[]}
+{"kind":"response","query-id":"10","status":"success","response":[]}
+{"kind":"response","query-id":"11","status":"success","response":[]}
+{"kind":"response","query-id":"12","status":"success","response":[]}
+{"kind":"response","query-id":"13","status":"success","response":null}
+{"kind":"response","query-id":"14","status":"success","response":[]}
+{"kind":"response","query-id":"15","status":"success","response":null}
+{"kind":"response","query-id":"16","status":"failure","response":[{"level":"error","message":"could not prove post-condition","ranges":[{"fname":"<input>","beg":[56,42],"end":[56,66]}]}]}
+{"kind":"response","query-id":"17","status":"failure","response":null}
+{"kind":"response","query-id":"18","status":"success","response":{"name":"RSA.pow","defined-at":null,"type":"g:Prims.nat -> e:Prims.nat -> Prims.Tot Prims.nat","documentation":null,"definition":null}}
+{"kind":"response","query-id":"19","status":"success","response":{"name":"RSA.pow","defined-at":null,"type":"g:Prims.nat -> e:Prims.nat -> Prims.Tot Prims.nat","documentation":null,"definition":null}}

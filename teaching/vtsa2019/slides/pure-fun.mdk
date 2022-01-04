@@ -1,0 +1,789 @@
+[INCLUDE=presentation]
+Title         : A Gentle Introduction to F*
+Author        : Catalin hritcu, Nik Swamy
+Affiliation   : Inria Paris
+Reveal Url    : ../reveal.js
+Reveal Theme  : white
+Colorizer     : ../../stuff/fstarlang
+Logo          : False
+Html Header   :
+    <script src="../../stuff/script.js"></script>
+    <link rel="stylesheet" href="../../stuff/style.css" id="custom_style">
+Package       : xypic
+HTML Meta     : clear
+~Pre,~Code: language=fstarlang
+
+~ MathDefs
+[INCLUDE=../../stuff/latex.tex]
+~
+
+# A Gentle Introduction to F\* #
+
+~Center
+[![fstar-logo]](https://www.fstar-lang.org)
+
+**[Catalin Hritcu, Inria Paris](https://prosecco.gforge.inria.fr/personal/hritcu)**
+
+[Summer School on Verification Technology, Systems, and Applications (VTSA)](http://resources.mpi-inf.mpg.de/departments/rg1/conferences/vtsa19/)
+
+University of Luxembourg, 1-2 July 2019
+~
+
+[fstar-logo]: ../../stuff/fstar-new.png { width=200px }
+
+<!-------------------------------------------------------------------------------->
+
+## Schedule ##
+
+* **Today: A Gentle Introduction to F\* (Purely Functional Programs)**
+
+* Tomorrow: Verifying Stateful Programs in F\*
+
+* Tomorrow: Monotonic State in F\*
+
+<!-- * Tomorrow: F\*'s Extensible Effect System and Metaprogramming in F\* -->
+
+~Fragment
+Slides, code, exercises, and setup instructions at<br/>
+[https://prosecco.gforge.inria.fr/personal/hritcu/teaching/vtsa2019](https://prosecco.gforge.inria.fr/personal/hritcu/teaching/vtsa2019)<br/>
+(or via the VTSA website)
+~
+
+~Fragment
+**Please ask questions at any time!**
+~
+
+<!-------------------------------------------------------------------------------->
+
+## Program verification: Shall the twain ever meet? ##
+
+<!-- Two, mostly disjoint sides of program verification research -->
+
+| [Interactive proof assistants]{color:DarkRed;} ||                                 | [Semi-automated verifiers of<br/> imperative programs]{color:DarkBlue;} ||
+|:----------------------:|:-----------------------+:~{background-color:LightBlue}~~:+:--------------------------------:|:---------------------------------|
+| &nbsp;&nbsp;&nbsp; **Coq**,                   |               | \ \ *air* \                     | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Dafny**,                           |                            |
+| &nbsp;&nbsp;&nbsp; **Agda**,              |                   |                                 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **FramaC**,                          |                         |
+| &nbsp;&nbsp;&nbsp; **Lean**,                  |                | \ \ *gap* \                     | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Why3**,                              |                              |
+| &nbsp;&nbsp;&nbsp; **Isabelle**                  |               |                                 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Liquid Types**                                 |                              |
+
+* **[Left corner]{color:DarkRed;}**:
+very expressive higher-order logics, interactive proving,\
+tactics, but mostly only purely functional programming
+
+* **[Right corner]{color:DarkBlue;}**:
+effectful programming, SMT-based automation,\
+but only very weak logics
+
+<!------------------------------------------------------------------------------>
+
+## Bridging the gap: F\* ##
+
+<!-- General-purpose -->
+* **[Functional programming language with effects]{color:Black;}**
+  - like OCaml, F#, Haskell, ...
+    <!-- ``` -->
+    <!-- let incr (r:ref a) = r := !r + 1 -->
+    <!-- ``` -->
+  <!-- - F\* extracted to OCaml or F\# by default -->
+  <!-- - subset of F\* extracted to efficient C code -->
+
+* {.fragment} **[Semi-automated verification system using SMT]{color:DarkBlue;}**
+  - like Dafny, FramaC, Why3, Liquid Types, ...
+
+* {.fragment} **[Expressive core based on dependent type theory]{color:DarkRed;}**
+  <!-- - full dependency, inductive types, universe polymorphism -->
+  - like Coq, Agda, Lean, Nuprl, ...
+
+* {.fragment} **[A metaprogramming and tactic framework<br/>
+  for interactive proof and user-defined automation]{color:DarkGreen;}**
+  - like Coq, Lean, Nuprl, Isabelle, HOL, etc.
+
+
+<!-- * {.fragment} Other tools in this space: -->
+<!--   - DML/ATS, HTT, Idris, Trellys/Zombie, CoqHammer, ... -->
+  <!-- - But F\* is the closest to bridging the gap by nicely integrating these three things -->
+
+<!------------------------------------------------------------------------------>
+
+# Running F\* Programs
+
+~Center
+![fstar-lowstar-vale-compilation]
+~
+
+[fstar-lowstar-vale-compilation]: ../../stuff/fstar-lowstar-vale-compilation.png { width=800px }
+
+<!-- TODO: worth mentioning that the ASM and Vale interoperate -->
+
+<!------------------------------------------------------------------------------>
+
+## Uses of F\* in Project Everest ##
+
+- **[Project Everest](https://project-everest.github.io/): verify and deploy new, efficient HTTPS stack**
+   - [miTLS](https://github.com/project-everest/mitls-fstar): Verified reference implementation of TLS (1.2 and 1.3)
+   - [EverParse](https://github.com/project-everest/everparse): Verified parsers and formatter generators
+   - [EverCrypt](https://github.com/project-everest/hacl-star/providers/evercrypt): Agile Cryptographic Provider
+   - [HACL\*](https://github.com/mitls/hacl-star): High-Assurance Cryptographic Library
+   - [Vale](https://github.com/project-everest/vale): Verified Assembly Language for Everest
+
+- **Verified Everest code deployed in**
+   - Firefox (Mozilla NSS crypto)
+   - Windows (WinQUIC)
+   - Azure Confidential Consortium (Verified Merkle tree for the blockchain)
+   - WireGuard VPN
+   - Zinc crypto library for Linux
+   - Tezos and Concordium blockchains
+
+<!------------------------------------------------------------------------------>
+
+# EverCrypt: A No-Excuses, Verified Cryptographic Provider
+
+
+~Center
+[![EverCrypt-table]](https://www.microsoft.com/en-us/research/blog/evercrypt-cryptographic-provider-offers-developers-greater-security-assurances/)
+~
+
+* 180KLOC of code & proof, producing 40KLOC of verified C & assembly
+  - Memory safe
+  - Functionally correct
+  - Side-channel resistant
+
+[EverCrypt-table]: ../../stuff/EverCrypt-table.png {width=900px}
+
+
+# AES-GCM: Authenticated Encryption
+<!-- for 90% of Secure Internet Traffic -->
+~Center
+[![EverCrypt-perf]{heigth=60%}](https://www.microsoft.com/en-us/research/blog/evercrypt-cryptographic-provider-offers-developers-greater-security-assurances/)
+~
+
+[EverCrypt-perf]: ../../stuff/EverCrypt-perf.png
+
+# The current F* team #
+
+- [**Microsoft Research, Inria Paris, Rosario, MIT, ...**]{color:DarkGreen;}
+  + many former members, interns, external contributors, ... you?
+  + [https://github.com/FStarLang/FStar](https://github.com/FStarLang/FStar)
+
+<!-- {font-size:xx-large} -->
+
+~Columns
+~~ Column {width 50%}
+- Danel Ahman
+- Benjamin Beurdouche
+- Karthikeyan Bhargavan
+- Barry Bond
+- Antoine Delignat-Lavaud
+- Victor Dumitrescu
+- Cédric Fournet
+- Chris Hawblitzel
+- Cătălin Hriţcu
+- Markulf Kohlweiss
+- Qunyan Mangus
+- Kenji Maillard
+~~
+~~ Column {width 50%}
+- Asher Manning
+- Guido Martínez
+- Zoe Paraskevopoulou
+- Clément Pit-Claudel
+- Jonathan Protzenko
+- Ramkumar Ramachandra
+- Tahina Ramananandro
+- Aseem Rastogi
+- **[Nikhil Swamy (benevolent dictator)]{color:DarkGreen}**
+- Christoph M. Wintersteiger
+- Santiago Zanella-Béguelin
+- Gustavo Varo
+~~
+~
+
+
+<!-- # The current F\* team # -->
+
+<!-- ~Center -->
+<!-- [**Microsoft Research (US, UK, India), Inria Paris, MIT, Rosario, ...**]{color:DarkGreen;} -->
+<!-- ~ -->
+
+<!--   |   |   -->
+<!-- --- | --- | -->
+<!-- [Danel Ahman]{color:DarkBlue}<br/>Benjamin Beurdouche<br/>Karthikeyan Bhargavan<br/>Barry Bond<br/>Antoine Delignat-Lavaud&nbsp;&nbsp;&nbsp;<br/>Victor Dumitrescu<br/>Cédric Fournet<br/>Chris Hawblitzel<br/>Cătălin Hriţcu<br/>Markulf Kohlweiss<br/>Qunyan Mangus<br/>[Kenji Maillard]{color:DarkBlue} | Asher Manning<br/>Guido Martínez<br/>Zoe Paraskevopoulou<br/>Clément Pit-Claudel<br/>Jonathan Protzenko<br/>Tahina Ramananandro<br/>Aseem Rastogi<br/>[**Nikhil Swamy (benevolent dictator)**]{color:DarkRed;}<br/>Christoph M. Wintersteiger<br/>Santiago Zanella-Béguelin<br/>Gustavo Varo |  -->
+
+
+<!------------------------------------------------------------------------------>
+
+## The rest of this lecture ##
+
+* **The functional core of F\***
+
+* **Verifying purely functional programs** <br/><br/>
+
+* Using very simple examples throughout
+
+* Small hands-on exercises in the end (for the exercise classes)
+
+<!------------------------------------------------------------------------------>
+
+## The functional core of F\* ##
+
+* Recursive functions
+
+```
+[INCLUDE=../../../code/pure-fun/Fact.fst:factorial]
+```
+
+* {.fragment} (Simple) inductive datatypes and pattern matching
+  ```
+  type list (a:Type) =
+    | Nil  : list a
+    | Cons : hd:a -> tl:list a -> list a
+
+  val map : ('a -> 'b) -> list 'a -> list 'b
+
+  let rec map f x =
+    match x with
+    | []     -> []
+    | h :: t -> f h :: map f t
+  ```
+
+* {.fragment} Lambdas
+  ```
+  map (fun x -> x + 42) [1;2;3]
+  ```
+
+<!------------------------------------------------------------------------------>
+
+<!-- ## Beyond ML types ## -->
+
+## Refinement types ##
+
+```
+type nat = x:int{x >= 0}
+```
+* {.fragment} Refinements introduced by type annotations (code unchanged)
+  ```
+  val factorial : nat -> nat
+  let rec factorial n = if n = 0 then 1 else n * (factorial (n - 1))
+  ```
+
+* {.fragment} Logical obligations discharged by SMT (for else branch, simplified)
+  ```text
+  n >= 0, n <> 0 |= n - 1 >= 0
+  n >= 0, n <> 0, (factorial (n - 1)) >= 0 |= n * (factorial (n - 1)) >= 0
+  ```
+
+* {.fragment} Refinements eliminated by **subtyping**: ` nat <: int`
+  ```
+  let i : int = factorial 42
+
+  let f : x:nat{x > 0} -> int = factorial
+  ```
+
+<!-- Type theorists
+* {.fragment} Different kinds of extensional equality (`=`, `==`, `===`) -->
+
+
+## Dependent types ##
+
+* Dependent function types ($\Pi$), here together with refinements:
+  ```
+  val incr : x:int -> y:int{x < y}
+  let incr x = x + 1
+  ```
+
+* {.fragment} Can express pre- and postconditions of pure functions
+  ```
+  val incr' : x:nat{odd x} -> y:nat{even y}
+  ```
+
+* {.fragment} Exercise 0: Can you find other types for `incr`?
+
+<!-- Type theorists
+
+* {.fragment} (Parameterised and indexed) inductive datatypes; implicit arguments
+  ```
+  type vec (a:Type) : nat -> Type =
+    | Nil  : vec a 0
+    | Cons : #n:nat -> hd:a -> tl:vec a n -> vec a (n + 1)
+
+  val map : #n:nat -> #a:Type -> #b:Type -> (a -> b) -> vec a n -> vec b n
+  let rec map #n #a #b f as =
+    match as with
+    | Nil        -> Nil
+    | Cons hd tl -> Cons (f hd) (map f tl)
+
+  val lookup : #a:Type -> #n:nat -> vec a n -> m:nat -> m `less_than` n -> a
+  let rec lookup #a #n v m p = ...
+  ```
+
+## Inductive families + refinement types ##
+
+* As in e.g. Coq, we could define on the last slide
+  ```
+  type vec (a:Type) : nat -> Type =
+    | Nil  : vec a 0
+    | Cons : #n:nat -> hd:a -> tl:vec a n -> vec a (n + 1)
+
+  val lookup : #a:Type -> #n:nat -> vec a n -> m:nat -> m `less_than` n -> a
+  let rec lookup #a #n v m p = ...
+  ```
+
+* {.fragment} But can also combine `vec` with refinement types for more convenience
+  ```
+  val lookup : #a:Type -> #n:nat -> vec a n -> m:nat{m `less_than` n} -> a
+  let rec lookup #a #n v m = ...
+  ```
+* {.fragment} Or we could even just use lists + refinement types
+  ```
+  type list (a:Type) = | Nil : list a | Cons : hd:a -> tl:list a -> list a
+
+  val length : #a:Type -> list a -> nat
+  let rec length #a l = match l with | Nil -> 0 | Cons _ tl -> 1 + length tl
+
+  val lookup : #a:Type -> l:list a -> m:nat{m `less_than` (length l)} -> a
+  let rec lookup #a l m = ...
+  ```
+-->
+
+
+## Total functions in F\* ##
+
+* The F\* functions we saw so far were all [**total**]{color:DarkBlue}
+
+* `Tot` effect (default) = no side-effects, terminates on all inputs
+
+  ```
+  val factorial : nat -> Tot nat
+  let rec factorial n =
+    if n = 0 then 1 else n * (factorial (n - 1))
+  ```
+
+* {.fragment} **Quiz:** How about giving this weaker type to factorial?
+  ```
+  val factorial : int -> Tot int
+  ```
+
+~Fragment {.console}
+  ```text
+  let rec factorial n = if n = 0 then 1 else n * (factorial (n - 1))
+                                                             ^^^^^
+  Subtyping check failed; expected type (x:int{(x << n)}); got type int
+  ```
+  `factorial (-1)` loops! &nbsp;&nbsp; (`int` type in F\* is unbounded)
+~
+
+## Semantic termination checking ##
+
+* based on **well-founded ordering on expressions** (`<<`)
+  - naturals related by `<` (negative integers unrelated)
+  - inductives related by subterm ordering
+  - lex tuples `%[a;b;c]` with lexicographic ordering
+* {.fragment} order constraints discharged by the SMT solver
+* {.fragment} arbitrary total expression as **decreases metric**
+  ```
+  val ackermann: m:nat -> n:nat -> Tot nat (decreases %[m;n])
+  let rec ackermann m n =
+    if m = 0 then n + 1
+    else if n = 0 then ackermann (m - 1) 1
+    else ackermann (m - 1) (ackermann m (n - 1))
+  ```
+* {.fragment} default metric is lex ordering of all (non-function) args
+  ```
+  val ackermann: m:nat -> n:nat -> Tot nat
+  ```
+
+## The divergence effect (`Dv`) ##
+
+* We might not want to prove all code terminating
+  ```
+  val factorial : int -> Dv int
+  ```
+
+* {.fragment} Some useful code really is not always terminating
+
+  - {.fragment} evaluator for lambda terms
+    ```
+    val eval : exp -> Dv exp
+    let rec eval e =
+      match e with
+      | App (Lam x e1) e2 -> eval (subst x e2 e1)
+      | App e1 e2         -> eval (App (eval e1) e2)
+      | Lam x e1          -> Lam x (eval e1)
+      | _                 -> e
+
+    let main () = eval (App (Lam 0 (App (Var 0) (Var 0)))
+                            (Lam 0 (App (Var 0) (Var 0))))
+    ```
+    ~Fragment {.console}
+    ```text
+    ./Divergence.exe
+    ```
+    ~
+  - {.fragment} web servers, ...
+
+<!------------------------------------------------------------------------------>
+
+## F\* effect system encapsulates effectful code (`Tot` and `Dv`) ##
+
+* Pure code cannot call potentially divergent code
+
+* {.fragment} Only pure code can appear in specifications
+  ```
+  val factorial : int -> Dv int
+
+  type tau = x:int{x = factorial (-1)}
+  ```
+~Fragment {.console}
+  ```text
+  type tau = x:int{x = factorial (-1)}
+                   ^^^^^^^^^^^^^^^^^^
+  Expected a pure expression; got an expression ... with effect "DIV"
+  ```
+~
+<!-- Cheating quite badly above since I don't want to tell them about ghost -->
+
+* {.fragment} **Sub-effecting:** `Tot t <: Dv t`
+
+* {.fragment} So, divergent code can include pure code
+  ```
+  incr 2 + factorial (-1) : Dv int
+  ```
+
+<!------------------------------------------------------------------------------>
+
+<!-- Type theorists
+
+## F\* effect system encapsulates effectful code (`Tot` and `GTot`) ##
+
+* {.fragment} **[Ghost]{color:DarkBlue}** effect for code used only in specifications
+  ```
+  val sel : #a:Type -> heap -> ref a -> GTot a
+  ```
+
+* {.fragment} **Sub-effecting:** ` Tot t <: GTot t`
+
+* {.fragment} **[BUT NOT:]{color:DarkRed}** ` GTot t <: Tot t   ` [(holds for non-informative types)]{color:Gray}
+
+* {.fragment} So, (informative) ghost code [cannot]{color:DarkRed} be used in total functions
+  ```
+  let f (g:unit -> GTot nat) : Tot (n:nat{n = g ()}) = g ()
+  ```
+~Fragment {.console}
+  ```text
+  Computed type "n:nat{n = g ()}" and effect "GTot"
+  is not compatible with the annotated type "n:nat{n = g ()}" effect "Tot"
+  ```
+~
+
+* {.fragment} But total functions [can]{color:DarkGreen} appear in ghost code (regardless of their type)
+  ```
+  let f (g:unit -> Tot nat) : GTot (n:nat{n = g ()}) = g ()
+  ```
+-->
+
+<!-- Non-informative types T ::= unit | Type u | t -> Tot T | t -> GTot T -->
+
+
+<!------------------------------------------------------------------------------>
+
+## Verifying pure programs ## {#pure1}
+### Variant #1: [intrinsically]{color:DarkBlue} (at definition time) ###
+
+* Using refinement types (saw this already)
+```
+val factorial : nat -> Tot nat              (* type nat = x:int{x >= 0} *)
+```
+* {.fragment}Can equivalently use [**pre- and postconditions**]{color:DarkGreen} for this
+```
+val factorial : x:int -> Pure int (requires (x >= 0))
+                                    (ensures  (fun y -> y >= 0))
+```
+* {.fragment} Each F\* [**computation type**]{color:DarkRed} is of the form
+  - *effect* (e.g. `Pure`) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *result type* (e.g. `int`) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     *spec.* (e.g. pre and post)<br/><br/>
+* {.fragment}`Tot` is essentially just an abbreviation
+```
+Tot t = Pure t (requires True) (ensures (fun _ -> True))
+```
+
+<!------------------------------------------------------------------------------>
+
+## Verifying potentially divergent programs ##
+### The only variant: [intrinsically]{color:DarkBlue} (partial correctness) ###
+
+* Using refinement types
+```
+val factorial : nat -> Dv nat
+```
+* {.fragment}Or the `Div` computation type (pre- and postconditions)
+  ```
+  val eval_closed : e:exp -> Div exp
+                                 (requires (closed e))
+                                 (ensures  (fun e' -> Lam? e' /\ closed e'))
+  let rec eval_closed e =
+    match e with           (* notice there is no match case for variables *)
+    | App e1 e2 ->
+        let Lam e1' = eval_closed e1 in
+        below_subst_beta 0 e1' e2;
+        eval_closed (subst (sub_beta e2) e1')
+    | Lam e1 -> Lam e1
+  ```
+* {.fragment} Match exhaustiveness check also semantic (via SMT)
+* {.fragment}`Dv` is also just an abbreviation
+```
+Dv t = Div t (requires True) (ensures (fun _ -> True))
+```
+
+<!------------------------------------------------------------------------------->
+
+## Another way to look at this ##
+
+* **Two classes of types**
+  - [Value types (`t`):]{color:DarkBlue} `int`, `list int`, ...
+  - [Computation types (`C`):]{color:DarkRed} `Tot t`, ` Dv t`<!-- , `GTot t` -->
+
+* {.fragment} **Dependent (effectful) function types** of the form: ` x:t -> C`
+  - argument can't have side-effects, so a value type
+
+* {.fragment} **Two forms of refinement types**
+  - [Refined value types:]{color:DarkBlue}
+    - ` x:t{p}`
+  - [Refined computation types:]{color:DarkRed}
+    - `Pure t pre post`
+    - `Div t pre post`
+    <!-- - `Ghost t pre post` -->
+    - these will get more interesting for more interesting effects
+
+<!------------------------------------------------------------------------------>
+
+## Verifying pure programs ## {#pure2}
+### Variant #2: [extrinsically]{color:DarkRed} using SMT-backed lemmas ###
+
+```
+[INCLUDE=../../../code/pure-fun/AppendLength.fst:append]
+```
+~Fragment
+```
+[INCLUDE=../../../code/pure-fun/AppendLength.fst:append_length]
+```
+~
+* {.fragment} Syntactic sugar
+<!-- : **the `Lemma` effect** -- CH: computation type -->
+```
+Lemma (post) = Pure unit (requires True) (ensures (fun _ -> post))
+Lemma (pre) (post) = Pure unit (requires pre) (ensures (fun _ -> post))
+```
+
+<!------------------------------------------------------------------------------>
+
+<!-- ## Exercise 4c from F\* tutorial ## -->
+
+<!-- Prove that `mem` satisfies the following property: -->
+
+<!-- ``` -->
+<!-- let rec append (#a:Type) (xs : list a) (ys : list a) : Tot (list a) = -->
+<!--   match xs with -->
+<!--   | [] -> ys -->
+<!--   | x :: xs' -> x :: append xs' ys -->
+<!-- let rec mem (#a:eqtype) (x:a) (xs:list a) : Tot bool = -->
+<!--   match xs with -->
+<!--   | [] -> false -->
+<!--   | hd :: tl -> hd = x || mem x tl -->
+<!-- ``` -->
+<!-- ``` -->
+<!-- val append_mem:  #a:eqtype -> l1:list a -> l2:list a -> x:a -->
+<!--         -> Lemma (mem x (append l1 l2) <==> mem x l1 || mem x l2) -->
+
+<!-- let rec append_mem #a l1 l2 x = -->
+<!-- ``` -->
+<!-- ~Fragment -->
+<!-- ``` -->
+<!--   match l1 with -->
+<!--   | [] -> () -->
+<!--   | hd1::tl1 -> append_mem tl1 l2 x -->
+<!-- ``` -->
+<!-- ~ -->
+
+<!-- This code (uselessly) exposes eqtype which is not nice -->
+
+
+<!------------------------------------------------------------------------------>
+
+## Often lemmas are unavoidable ##
+<!-- need lemma for 3 reasons:
+- as before, this property is rather arbitrary
+- this property is "relational" (2 calls to reverse)
+- proof doesn't follow the structure of the program
+-->
+```
+[INCLUDE=../../../code/pure-fun/Rev.fst:rev]
+```
+~Fragment
+```
+[INCLUDE=../../../code/pure-fun/Rev.fst:rev_snoc]
+```
+~
+```
+[INCLUDE=../../../code/pure-fun/Rev.fst:rev_involutive]
+```
+
+## Often lemmas are unavoidable ([but SMT can help]{color:DarkBlue}) ##
+```
+[INCLUDE=../../../code/pure-fun/Rev.fst:rev]
+```
+
+```
+[INCLUDE=../../../code/pure-fun/Rev.fst:rev_snoc2]
+```
+
+```
+[INCLUDE=../../../code/pure-fun/Rev.fst:rev_involutive2]
+```
+
+<!------------------------------------------------------------------------------>
+
+## Exercise 1: Summing: 0 + 1 + 2 + 3 + ... ##
+```
+[INCLUDE=../../../ex/Sum.fst]
+```
+
+<!------------------------------------------------------------------------------>
+
+## Verifying pure programs ## {#pure3}
+### Variant #3: using [proof terms]{color:DarkGreen} ###
+
+<br/>
+
+<!--
+```
+val preservation : #e:exp -> #e':exp -> #g:env -> #t:typ ->
+       ht:(typing g e t) -> hs:step e e' -> Tot (typing g e' t) (decreases ht)
+let rec preservation #e #e' #g #t (TyApp h1 h2) hs =
+  match hs with
+  | SBeta tx e1' e2' -> substitution_beta h2 (TyLam?.hbody h1)
+  | SApp1 e2' hs1   -> TyApp (preservation h1 hs1) h2
+  | SApp2 e1' hs2   -> TyApp h1 (preservation h2 hs2)
+```
+-->
+
+~Fragment
+```
+val progress : #e:exp -> #t:typ -> h:typing empty e t ->
+                         Pure (cexists (fun e' -> step e e'))
+                              (requires (~ (is_value e)))
+                              (ensures  (fun _ -> True)) (decreases h)
+let rec progress #e #t h =
+  match h with
+  | TyApp #g #e1 #e2 #t11 #t12 h1 h2 ->
+     match e1 with
+     | ELam t e1' -> ExIntro (subst (sub_beta e2) e1') (SBeta t e1' e2)
+     | _          -> let ExIntro e1' h1' = progress h1 in
+                     ExIntro (EApp e1' e2) (SApp1 e2 h1')
+```
+~
+
+<!------------------------------------------------------------------------------>
+
+## Functional core of F\* ## {#fcore}
+
+* **[Variant of dependent type theory]{color:DarkBlue}**
+  - $\lambda$, $\Pi$, inductives, matches, universe polymorphism
+
+* {.fragment} **[Recursion and semantic termination check]{color:DarkRed}**
+  - potential non-termination is an effect
+
+* {.fragment} **[Refinements]{color:DarkRed}**
+  - **Refined value types**:
+    - `x:t{p}`
+  - **Refined computation types**:
+    - `Pure t pre post`
+    - `Div t pre post`
+  - computationally and proof irrelevant, discharged by SMT
+
+* {.fragment} **[Subtyping and sub-effecting]{color:DarkRed}** (`<:`)
+
+* {.fragment} **[Extensional equality]{color:DarkRed}** (`=`, `==`, `===`)
+
+<!------------------------------------------------------------------------------>
+
+## Abstract types: an interface ##
+`Stack.fsti`
+```
+[INCLUDE=../../../code/pure-fun/Stack.fsti]
+```
+
+## A client of this interface ##
+`StackClient.fst`
+```
+[INCLUDE=../../../code/pure-fun/StackClient.fst]
+```
+
+## An implementation using lists of ints ##
+`Stack.fst`
+```
+[INCLUDE=../../../code/pure-fun/Stack.fst]
+```
+
+## Clients cannot break abstraction ##
+`StackClientBad.fst`
+```
+[INCLUDE=../../../code/pure-fun/StackClientBad.fst]
+```
+~Fragment{.console}
+```text
+[hritcu@detained pure-fun]$ fstar.exe StackClientBad.fst
+./StackClientBad.fst(6,9-6,11): (Error)
+Expected expression of type "Prims.list ((*?u13*) _ s0 s1)";
+got expression "s1" of type "Stack.stack"
+```
+~
+
+## Using refinement types for stacks ##
+Writing both module in interface in the same file.
+```
+[INCLUDE=../../../code/pure-fun/RefinedStack.fst]
+```
+
+## Client for RefinedStack ##
+
+```
+[INCLUDE=../../../ex/RefinedStackClient.fst]
+```
+
+* {.fragment} Exercise 2: redesign `RefinedStack` interface so that this works
+
+## A simple solution (1) ##
+
+```
+[INCLUDE=../../../sol/RefinedStackLength.fst]
+```
+
+## A simple solution (2) ##
+
+```
+[INCLUDE=../../../sol/RefinedStackLengthClient.fst]
+```
+
+## A more interesting solution (1) ##
+
+```
+[INCLUDE=../../../sol/RefinedStack.fst]
+```
+
+## A more interesting solution (2) ##
+
+```
+[INCLUDE=../../../sol/RefinedStackClient.fst]
+```
+
+<!------------------------------------------------------------------------------>
+
+## Next steps in this course ##
+
+* Today: A Gentle Introduction to F\* (Purely Functional Programs)
+
+* **Tomorrow: Verifying Stateful Programs in F\***
+
+* Tomorrow: Monotonic State in F\*
+
+<!-- * Tomorrow: F\*'s Extensible Effect System and Metaprogramming in F\* -->
