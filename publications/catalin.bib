@@ -1,21 +1,22 @@
 %% Drafts
 
-@misc{secureptrs,
+%% Conference Papers
+
+@inproceedings{secureptrs,
   author = {Akram El-Korashy and
             Roberto Blanco and
             Jérémy Thibault and
             Adrien Durier and
             Deepak Garg and
             C\u{a}t\u{a}lin Hri\c{t}cu},
-  title = {SecurePtrs: Proving Secure Compilation with Data-Flow Back-Translation and Turn-Taking Simulation},
-  howpublished = {arXiv:2110.01439},
+  title = {{SecurePtrs}: Proving Secure Compilation with Data-Flow Back-Translation and Turn-Taking Simulation},
+  booktitle = {35th {IEEE} Computer Security Foundations Symposium, ({CSF})},
+  year = 2022,
+  month = aug,
   url = {https://arxiv.org/abs/2110.01439},
-  month = oct,
-  year = 2021,
   chcontrib = {minor},
+  acceptance = {32/165=19.4}
 }
-
-%% Conference Papers
 
 @inproceedings{difc4free,
   author    = {Maximilian Algehed and
@@ -699,6 +700,32 @@ http://ieee-security.org/TC/SP2013/papers/4977a003.pdf
 
 %% Journal Papers
 
+@article{AbateBCDGHPTT21,
+  author    = {Carmine Abate and
+               Roberto Blanco and
+               {\c{S}}tefan Ciob{\^{a}}c{\u{a}} and
+               Adrien Durier and
+               Deepak Garg and
+               Catalin Hritcu and
+               Marco Patrignani and
+               {\'{E}}ric Tanter and
+               J{\'{e}}r{\'{e}}my Thibault},
+  title     = {An Extended Account of Trace-relating Compiler Correctness and Secure
+               Compilation},
+  journal   = {{ACM} Transactions on Programming Languages and Systems (TOPLAS)},
+  shortjournal = {TOPLAS},
+  volume    = {43},
+  number    = {4},
+  pages     = {14:1--14:48},
+  year      = {2021},
+  url       = {https://doi.org/10.1145/3460860},
+  doi       = {10.1145/3460860},
+  timestamp = {Mon, 07 Feb 2022 08:20:01 +0100},
+  biburl    = {https://dblp.org/rec/journals/toplas/AbateBCDGHPTT21.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org},
+  chcontrib = {average},
+}
+
 @article{ver_ifc_jcs,
   title = {A Verified Information-Flow Architecture},
   author = {
@@ -880,6 +907,25 @@ http://ieee-security.org/TC/SP2013/papers/4977a003.pdf
 
 %% Editor
 
+@article{dagstuhl-sc-2021,
+  author    = {David Chisnall and
+               Deepak Garg and
+               Catalin Hritcu and
+               Mathias Payer},
+  title     = {{Secure Compilation (Dagstuhl Seminar 21481)}},
+  journal   = {Dagstuhl Reports},
+  volume    = {11},
+  number    = {10},
+  pages     = {173--204},
+  year      = {2021},
+  url       = {https://doi.org/10.4230/DagRep.11.10.173},
+  doi       = {10.4230/DagRep.11.10.173},
+  timestamp = {Wed, 20 Apr 2022 10:08:38 +0200},
+  biburl    = {https://dblp.org/rec/journals/dagstuhl-reports/ChisnallGHP21.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org},
+  chcontrib = {first},
+}
+
 @proceedings{cpp-2021,
   editor    = {C\u{a}t\u{a}lin Hri\c{t}cu and
                Andrei Popescu},
@@ -951,6 +997,34 @@ http://ieee-security.org/TC/SP2013/papers/4977a003.pdf
 % https://academia.stackexchange.com/questions/41688/how-to-represent-and-cite-a-patent-using-bibtex
 
 %% Workshop Papers
+
+@misc{AndriciWCR22,
+  author = {Cezar-Constantin Andrici and
+            Théo Winterhalter and
+            C\u{a}t\u{a}lin Hri\c{t}cu and
+            Exequiel Rivas},
+  title = {Verifying non-terminating programs with IO in {F*}},
+  howpublished = {Presentation at the 10th ACM SIGPLAN Workshop on Higher-Order
+                  Programming with Effects (HOPE 2022)},
+  year = 2022,
+  month = sept,
+  chcontrib = {minor},
+}
+
+@misc{WinterhalterAHMMR22,
+  author = {Théo Winterhalter and
+            Cezar-Constantin Andrici and
+            C\u{a}t\u{a}lin Hri\c{t}cu and
+            Kenji Maillard and
+            Guido Martínez and
+            Exequiel Rivas},
+  title = {Partial {Dijkstra} Monads for All},
+  howpublished = {Extended abstract of presentation at the 28th International
+                  Conference on Types for Proofs and Programs (TYPES 2022)},
+  year = 2022,
+  month = jun,
+  chcontrib = {minor},
+}
 
 @misc{FachiniHSELAPT17,
   author = {Guglielmo Fachini and
